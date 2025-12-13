@@ -1,10 +1,11 @@
 """
-Answerer Agent - Generates answers using the official Claude Skills API.
+Answerer Agent - Generates answers using skills.
 
-This implementation uses:
-- Official Skills API with container.skills parameter
-- Code execution tool for skill execution
-- Tool use for structured JSON output
+Production pattern:
+1. If official Skills API available: use container.skills + code_execution
+2. If not: use prompt injection with skill content
+
+Both patterns use Tool Use for reliable structured JSON output.
 
 See: https://platform.claude.com/docs/en/build-with-claude/skills-guide
 """
@@ -14,14 +15,27 @@ from ..config import get_settings
 from ..models import AnswerDraft, Source, SkillDomain
 from ..services.skills import skill_manager, BETAS
 
-# System prompt for the answerer
-SYSTEM_PROMPT = """You are a Technical Sales assistant helping answer customer questions during a sales call.
-
-You have access to specialized knowledge through Skills that have been loaded into your environment.
-Use this knowledge to provide accurate, helpful answers.
+# Base system prompt
+BASE_SYSTEM_PROMPT = """You are a Technical Sales assistant helping answer customer questions during a sales call.
 
 Instructions:
 1. Use the knowledge from your Skills to provide accurate answers
+2. Cite sources when available (mention which skill/file the info comes from)
+3. Include appropriate caveats (e.g., "timelines subject to change")
+4. Suggest follow-up questions the sales rep could ask
+5. If unsure, say so clearly
+
+Use the generate_answer tool to provide your response."""
+
+# System prompt with injected skills
+SYSTEM_PROMPT_WITH_SKILLS = """You are a Technical Sales assistant helping answer customer questions during a sales call.
+
+You have access to the following specialized knowledge:
+
+{skills_content}
+
+Instructions:
+1. Use the knowledge above to provide accurate answers
 2. Cite sources when available (mention which skill/file the info comes from)
 3. Include appropriate caveats (e.g., "timelines subject to change")
 4. Suggest follow-up questions the sales rep could ask
@@ -76,7 +90,7 @@ ANSWER_TOOL = {
 
 
 class AnswererAgent:
-    """Agent that generates answers using official Skills API and tool use."""
+    """Agent that generates answers using skills (official API or prompt injection)."""
 
     def __init__(self):
         settings = get_settings()
@@ -89,44 +103,77 @@ class AnswererAgent:
         context: str,
         skill_domains: list[SkillDomain],
     ) -> AnswerDraft:
-        """Generate an answer using the specified skills via official API."""
+        """Generate an answer using the specified skills."""
         # Ensure skill manager is initialized
         if not skill_manager.is_initialized:
             await skill_manager.initialize()
 
-        # Get container.skills config
-        skills_config = skill_manager.get_skills_config(skill_domains[:4])  # Max 4 skills
+        # Choose approach based on API availability
+        if skill_manager.using_official_api:
+            return await self._answer_with_official_api(question, context, skill_domains)
+        else:
+            return await self._answer_with_prompt_injection(question, context, skill_domains)
 
-        # Build tools list - always include our answer tool
+    async def _answer_with_official_api(
+        self,
+        question: str,
+        context: str,
+        skill_domains: list[SkillDomain],
+    ) -> AnswerDraft:
+        """Generate answer using official Skills API with container.skills."""
+        skills_config = skill_manager.get_skills_config(skill_domains[:4])
+
         tools = [ANSWER_TOOL]
+        if skills_config:
+            tools.append({"type": "code_execution_20250825", "name": "code_execution"})
 
-        # Build the request
-        request_params = {
-            "model": self.model,
-            "max_tokens": 4096,
-            "system": SYSTEM_PROMPT,
-            "tools": tools,
-            "tool_choice": {"type": "tool", "name": "generate_answer"},
-            "messages": [
+        response = self.client.beta.messages.create(
+            model=self.model,
+            max_tokens=4096,
+            betas=BETAS,
+            system=BASE_SYSTEM_PROMPT,
+            container={"skills": skills_config} if skills_config else None,
+            tools=tools,
+            tool_choice={"type": "tool", "name": "generate_answer"},
+            messages=[
                 {
                     "role": "user",
                     "content": f"Context from the conversation:\n{context}\n\nQuestion to answer:\n{question}",
                 }
             ],
-        }
+        )
 
-        # Add skills via container if available
-        if skills_config:
-            # Add code execution tool for skills
-            tools.append({"type": "code_execution_20250825", "name": "code_execution"})
-            request_params["betas"] = BETAS
-            request_params["container"] = {"skills": skills_config}
+        return self._parse_response(response, [d.value for d in skill_domains])
 
-            # Use beta endpoint
-            response = self.client.beta.messages.create(**request_params)
+    async def _answer_with_prompt_injection(
+        self,
+        question: str,
+        context: str,
+        skill_domains: list[SkillDomain],
+    ) -> AnswerDraft:
+        """Generate answer using prompt injection fallback."""
+        # Get skill content for injection
+        skills_content = skill_manager.get_skills_content(skill_domains[:4])
+
+        # Build system prompt with injected skills
+        if skills_content:
+            system_prompt = SYSTEM_PROMPT_WITH_SKILLS.format(skills_content=skills_content)
         else:
-            # Fallback to standard API without skills
-            response = self.client.messages.create(**request_params)
+            system_prompt = BASE_SYSTEM_PROMPT
+
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=4096,
+            system=system_prompt,
+            tools=[ANSWER_TOOL],
+            tool_choice={"type": "tool", "name": "generate_answer"},
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Context from the conversation:\n{context}\n\nQuestion to answer:\n{question}",
+                }
+            ],
+        )
 
         return self._parse_response(response, [d.value for d in skill_domains])
 
