@@ -66,16 +66,21 @@ class SkillManager:
         """Try to use the official Skills API. Returns True if successful."""
         try:
             # Try to list skills to check if API is accessible
-            self._client.beta.skills.list(source="custom", betas=BETAS)
+            existing_skills = self._client.beta.skills.list(source="custom", betas=BETAS)
 
-            # If we get here, API is accessible - upload skills
+            # Build a map of display_title -> skill for reuse
+            existing_by_title = {s.display_title: s for s in existing_skills.data}
+
+            # If we get here, API is accessible - upload or reuse skills
             for domain in SkillDomain:
                 skill_dir = SKILLS_DIR / domain.value
                 if not skill_dir.exists():
                     continue
 
                 try:
-                    skill_info = await self._upload_skill(domain, skill_dir)
+                    skill_info = await self._upload_or_reuse_skill(
+                        domain, skill_dir, existing_by_title
+                    )
                     if skill_info:
                         self._skills[domain] = skill_info
                 except Exception as e:
@@ -90,15 +95,45 @@ class SkillManager:
             print(f"Skills API check failed: {e}")
             return False
 
-    async def _upload_skill(self, domain: SkillDomain, skill_dir: Path) -> SkillInfo | None:
-        """Upload a single skill to Anthropic via official API."""
-        # Prepare files for upload
+    async def _upload_or_reuse_skill(
+        self, domain: SkillDomain, skill_dir: Path, existing_by_title: dict
+    ) -> SkillInfo | None:
+        """Upload a skill or reuse existing one if display_title matches."""
         skill_md = skill_dir / "SKILL.md"
         if not skill_md.exists():
             return None
 
+        display_title = f"Interview Copilot - {domain.value.replace('_', ' ').title()}"
+
+        # Check if skill with this display_title already exists
+        if display_title in existing_by_title:
+            existing = existing_by_title[display_title]
+            print(f"Reusing existing skill: {display_title} (id={existing.id})")
+            return SkillInfo(
+                domain=domain,
+                skill_id=existing.id,
+                version=existing.latest_version,
+                display_title=display_title
+            )
+
+        # Create new skill
+        return await self._upload_skill(domain, skill_dir, display_title)
+
+    async def _upload_skill(
+        self, domain: SkillDomain, skill_dir: Path, display_title: str
+    ) -> SkillInfo | None:
+        """Upload a single skill to Anthropic via official API."""
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.exists():
+            return None
+
+        # Extract skill name from YAML frontmatter
+        skill_content = skill_md.read_text()
+        skill_name = self._extract_skill_name(skill_content, domain)
+
         files = []
-        dir_name = f"{domain.value}_skill"
+        # Folder name must match the 'name' field in SKILL.md frontmatter
+        dir_name = skill_name
         files.append((f"{dir_name}/SKILL.md", skill_md.read_bytes(), "text/markdown"))
 
         # Add reference files
@@ -111,20 +146,33 @@ class SkillManager:
                     "text/markdown"
                 ))
 
-        display_title = f"Sales Copilot - {domain.value.title()}"
-
         skill = self._client.beta.skills.create(
             display_title=display_title,
             files=files,
             betas=BETAS
         )
 
+        print(f"Created new skill: {display_title} (id={skill.id})")
         return SkillInfo(
             domain=domain,
             skill_id=skill.id,
             version=skill.latest_version,
             display_title=display_title
         )
+
+    def _extract_skill_name(self, content: str, domain: SkillDomain) -> str:
+        """Extract skill name from YAML frontmatter."""
+        import re
+        # Look for name field in YAML frontmatter
+        if content.startswith("---"):
+            end = content.find("---", 3)
+            if end != -1:
+                frontmatter = content[3:end]
+                match = re.search(r'^name:\s*(.+)$', frontmatter, re.MULTILINE)
+                if match:
+                    return match.group(1).strip()
+        # Fallback: convert domain value (underscores to hyphens)
+        return domain.value.replace("_", "-")
 
     async def _load_local_skills(self) -> None:
         """Load skills from local files for prompt injection."""
@@ -137,7 +185,7 @@ class SkillManager:
             if content:
                 self._skills[domain] = SkillInfo(
                     domain=domain,
-                    display_title=f"Sales Copilot - {domain.value.title()}",
+                    display_title=f"Interview Copilot - {domain.value.replace('_', ' ').title()}",
                     content=content
                 )
 
