@@ -1,23 +1,22 @@
 import json
 import re
+from pathlib import Path
 import anthropic
 from ..config import get_settings
 from ..models import AnswerDraft, Source, SkillDomain
-from ..skills.registry import SkillRegistry
 
-ANSWERER_PROMPT_WITH_SKILLS = """You are a Technical Sales assistant helping answer customer questions during a sales call.
+# Skills directory
+SKILLS_DIR = Path(__file__).resolve().parent.parent.parent / "skills"
 
-You have access to specialized knowledge through Skills that contain accurate, up-to-date information.
+SYSTEM_PROMPT_WITH_SKILLS = """You are a Technical Sales assistant helping answer customer questions during a sales call.
 
-Context from the conversation:
-{context}
+You have access to specialized knowledge through the following Skills. Use this knowledge to provide accurate, helpful answers.
 
-Question to answer:
-{question}
+{skills_content}
 
 Instructions:
-1. Use the knowledge from your Skills to provide accurate answers
-2. Cite sources when available (file names from Skills)
+1. Use the knowledge from the Skills above to provide accurate answers
+2. Cite sources when available (mention which skill/file the info comes from)
 3. Include appropriate caveats (e.g., "timelines subject to change")
 4. Suggest follow-up questions the sales rep could ask
 5. If unsure, say so and suggest escalation
@@ -32,18 +31,15 @@ Respond in JSON format:
 }}
 """
 
-ANSWERER_PROMPT_WITHOUT_SKILLS = """You are a Technical Sales assistant helping answer customer questions during a sales call.
+SYSTEM_PROMPT_WITHOUT_SKILLS = """You are a Technical Sales assistant helping answer customer questions during a sales call.
 
-Context from the conversation:
-{context}
-
-Question to answer:
-{question}
+You do NOT have access to any specialized company knowledge or skills. Answer based only on your general knowledge.
 
 Instructions:
-1. Answer based on your general knowledge
-2. Be honest about uncertainty
+1. Answer based on your general knowledge only
+2. Be honest about uncertainty - you don't have access to specific company information
 3. Suggest follow-up actions if unsure
+4. Do not make up specific details about products, pricing, or timelines
 
 Respond in JSON format:
 {{
@@ -56,14 +52,35 @@ Respond in JSON format:
 """
 
 
+def load_skill_content(domain: SkillDomain) -> str | None:
+    """Load skill content from local files."""
+    skill_dir = SKILLS_DIR / domain.value
+    if not skill_dir.exists():
+        return None
+
+    content_parts = []
+
+    # Load SKILL.md
+    skill_md = skill_dir / "SKILL.md"
+    if skill_md.exists():
+        content_parts.append(f"=== SKILL: {domain.value.upper()} ===\n")
+        content_parts.append(skill_md.read_text())
+
+    # Load reference files
+    refs_dir = skill_dir / "references"
+    if refs_dir.exists():
+        for ref_file in refs_dir.glob("*.md"):
+            content_parts.append(f"\n--- Reference: {ref_file.name} ---\n")
+            content_parts.append(ref_file.read_text())
+
+    return "\n".join(content_parts) if content_parts else None
+
+
 class AnswererAgent:
     def __init__(self):
         settings = get_settings()
         self.client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         self.model = settings.model_name
-        self.skills_beta = settings.skills_beta
-        self.code_execution_beta = settings.code_execution_beta
-        self.registry = SkillRegistry()
 
     async def answer(
         self,
@@ -83,31 +100,24 @@ class AnswererAgent:
         context: str,
         skill_domains: list[SkillDomain],
     ) -> AnswerDraft:
-        # Get skill IDs from registry
-        skills_config = []
+        # Load skill content from local files
+        skills_content_parts = []
         for domain in skill_domains[:8]:  # Max 8 skills
-            skill_id = self.registry.get_skill_id(domain)
-            if skill_id:
-                skills_config.append({
-                    "type": "custom",
-                    "skill_id": skill_id,
-                    "version": "latest",
-                })
+            content = load_skill_content(domain)
+            if content:
+                skills_content_parts.append(content)
+
+        skills_content = "\n\n".join(skills_content_parts) if skills_content_parts else "No skills loaded."
 
         try:
-            response = self.client.beta.messages.create(
+            response = self.client.messages.create(
                 model=self.model,
                 max_tokens=2048,
-                betas=[self.code_execution_beta, self.skills_beta],
-                container={"skills": skills_config} if skills_config else None,
-                tools=[{"type": "code_execution_20250825", "name": "code_execution"}] if skills_config else None,
+                system=SYSTEM_PROMPT_WITH_SKILLS.format(skills_content=skills_content),
                 messages=[
                     {
                         "role": "user",
-                        "content": ANSWERER_PROMPT_WITH_SKILLS.format(
-                            context=context,
-                            question=question,
-                        ),
+                        "content": f"Context from the conversation:\n{context}\n\nQuestion to answer:\n{question}",
                     }
                 ],
             )
@@ -130,13 +140,11 @@ class AnswererAgent:
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=2048,
+                system=SYSTEM_PROMPT_WITHOUT_SKILLS,
                 messages=[
                     {
                         "role": "user",
-                        "content": ANSWERER_PROMPT_WITHOUT_SKILLS.format(
-                            context=context,
-                            question=question,
-                        ),
+                        "content": f"Context from the conversation:\n{context}\n\nQuestion to answer:\n{question}",
                     }
                 ],
             )

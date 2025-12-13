@@ -21,13 +21,7 @@ cp .env.example .env
 # Edit .env and add your ANTHROPIC_API_KEY
 ```
 
-### 3. Upload Skills to Claude (first time only)
-
-```bash
-uv run python -m src.skills.manager upload
-```
-
-### 4. Run the application
+### 3. Run the application
 
 ```bash
 uv run uvicorn src.main:app --reload
@@ -87,24 +81,14 @@ Then open http://localhost:8000 in your browser.
 └── scenarios/               # Demo transcript scenarios
 ```
 
-## Skills Management
+## How Skills Work
 
-```bash
-# Upload all skills
-uv run python -m src.skills.manager upload
+This demo uses **prompt-based skill injection** - skill content is loaded from local markdown files and injected into the system prompt. This approach:
 
-# Upload specific skill
-uv run python -m src.skills.manager upload --domain roadmap
-
-# Force re-upload
-uv run python -m src.skills.manager upload --force
-
-# List registered skills
-uv run python -m src.skills.manager list
-
-# List remote skills from Claude API
-uv run python -m src.skills.manager list-remote
-```
+- Demonstrates the "curated knowledge" concept without requiring Skills API access
+- Skills are stored in `skills/` directory as markdown files
+- Each skill has a `SKILL.md` with instructions and `references/` for supporting docs
+- The Router decides which skills to activate, then content is injected into the Answerer's prompt
 
 ## API Endpoints
 
