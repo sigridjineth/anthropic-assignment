@@ -1,3 +1,39 @@
+"""
+Answerer Agent - Generates answers using dynamically loaded skills.
+
+## Skill Loading Approach
+
+This implementation uses **prompt injection** to load skills:
+1. Skills are stored locally in `skills/{domain}/SKILL.md`
+2. When activated, skill content is loaded and injected into the system prompt
+3. Claude uses this context to generate informed answers
+
+This is a demo-friendly approach that works offline without API setup.
+
+## Official Skills API (Production)
+
+For production, Anthropic's official Skills API provides:
+- `container.skills` parameter with `skill_id` and `version`
+- Code execution environment for skill execution
+- Versioning and skill management via `/v1/skills` endpoint
+
+Example:
+```python
+response = client.beta.messages.create(
+    model="claude-sonnet-4-5-20250929",
+    betas=["code-execution-2025-08-25", "skills-2025-10-02"],
+    container={
+        "skills": [
+            {"type": "custom", "skill_id": "skill_01xxx", "version": "latest"}
+        ]
+    },
+    tools=[{"type": "code_execution_20250825", "name": "code_execution"}]
+)
+```
+
+See: https://platform.claude.com/docs/en/build-with-claude/skills-guide
+"""
+
 import json
 import re
 from pathlib import Path
