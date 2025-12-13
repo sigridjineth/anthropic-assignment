@@ -277,6 +277,33 @@ Triggers: security (deep), deployment, compliance
 
 ---
 
+## P2 Features (Optional Enhancements)
+
+### TTS (Text-to-Speech)
+- **목적**: 추천 질문/답변을 음성으로 읽어주기
+- **구현 옵션**:
+  - Web Speech API (무료, 브라우저 내장)
+  - OpenAI TTS (고품질)
+  - ElevenLabs (자연스러운 음성)
+- **트리거**: Suggested Answer 카드에 "🔊 읽기" 버튼
+
+### Diff View
+- **목적**: Without vs With Skills 결과 차이를 시각적으로 하이라이트
+- **구현**: diff 라이브러리 사용하여 텍스트 차이 표시
+- **UI**: 삭제된 부분 빨간색, 추가된 부분 녹색
+
+### STT (Speech-to-Text)
+- **목적**: 실시간 음성 인식 → Transcript 자동 변환
+- **구현 옵션**:
+  - Web Speech API (무료, Chrome 전용, 정확도 낮음)
+  - Whisper API (OpenAI, 고품질, 실시간 어려움)
+  - Deepgram (실시간 스트리밍, 유료)
+  - AssemblyAI (실시간 스트리밍, 유료)
+- **현재 상태**: 시뮬레이션(JSON 프리셋)으로 대체
+- **참고**: 데모 안정성을 위해 프리셋 사용 권장
+
+---
+
 ## Day 2 Implementation Details
 
 ### 2.1 Router Cooldown (20s per domain)

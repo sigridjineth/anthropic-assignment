@@ -84,6 +84,7 @@
 
 * TTS(추천 질문/답변 읽기)
 * Diff View(Without vs With 결과 차이 하이라이트)
+* STT(실시간 음성 인식 → Transcript 변환, Web Speech API 또는 Whisper)
 
 ---
 
