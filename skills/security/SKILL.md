@@ -1,3 +1,8 @@
+---
+name: sales-copilot-security
+description: Security and compliance skill for enterprise sales. Covers SOC2, HIPAA, GDPR compliance, encryption standards, access control, data residency, SSO integration, and security audit guidance.
+---
+
 # Security Skill
 
 ## When to Use

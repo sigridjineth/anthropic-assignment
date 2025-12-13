@@ -1,3 +1,8 @@
+---
+name: sales-copilot-roadmap
+description: Product roadmap and feature timeline skill for technical sales. Provides safe messaging templates, timeline caveats, and guidance for discussing feature availability, release dates, and product direction with customers.
+---
+
 # Roadmap Skill
 
 ## When to Use

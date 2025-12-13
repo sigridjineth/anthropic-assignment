@@ -1,36 +1,87 @@
-import json
-import re
+"""
+Summarizer Agent - Maintains live conversation summary.
+
+Uses Anthropic's tool use feature for reliable structured JSON responses.
+See: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+"""
+
 import anthropic
 from ..config import get_settings
 from ..models import SummarizerState, KeyMoment, PredictedQuestion
 
 SYSTEM_PROMPT = """You are a conversation summarizer for a Technical Sales copilot. Analyze the transcript and provide a structured summary.
 
-Your output must be valid JSON:
-{
-    "summary": "A 2-3 sentence summary of the conversation so far",
-    "key_moments": [
-        {"quote": "Important quote", "why_important": "Why this matters", "timestamp": "optional"}
-    ],
-    "predicted_questions": [
-        {"question": "What the customer might ask next", "probability": 0.0-1.0, "domain": "skill_domain or null"}
-    ],
-    "customer_profile": {
-        "industry": "Their industry",
-        "needs": ["List of needs"],
-        "constraints": ["List of constraints"],
-        "decision_stage": "early/middle/late"
-    }
-}
-
 Guidelines:
 - Keep the summary concise and focused on business implications
 - Key moments should capture decision-making signals or important requirements
 - Predicted questions should help the sales rep prepare
-- Customer profile should be inferred from the conversation"""
+- Customer profile should be inferred from the conversation
+
+Use the update_summary tool to provide your summary."""
+
+# Tool definition for structured output
+SUMMARIZER_TOOL = {
+    "name": "update_summary",
+    "description": "Update the conversation summary with new information",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "summary": {
+                "type": "string",
+                "description": "A 2-3 sentence summary of the conversation so far"
+            },
+            "key_moments": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "quote": {"type": "string", "description": "Important quote from the conversation"},
+                        "why_important": {"type": "string", "description": "Why this matters for the sale"},
+                        "timestamp": {"type": ["string", "null"], "description": "Optional timestamp"}
+                    },
+                    "required": ["quote", "why_important"]
+                },
+                "description": "Key moments from the conversation"
+            },
+            "predicted_questions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "question": {"type": "string", "description": "What the customer might ask next"},
+                        "probability": {"type": "number", "description": "Likelihood 0.0-1.0"},
+                        "domain": {
+                            "type": ["string", "null"],
+                            "enum": ["roadmap", "architecture", "security", "pricing", None],
+                            "description": "Related skill domain"
+                        }
+                    },
+                    "required": ["question", "probability"]
+                },
+                "description": "Predicted next questions"
+            },
+            "customer_profile": {
+                "type": "object",
+                "properties": {
+                    "industry": {"type": "string"},
+                    "needs": {"type": "array", "items": {"type": "string"}},
+                    "constraints": {"type": "array", "items": {"type": "string"}},
+                    "decision_stage": {
+                        "type": "string",
+                        "enum": ["early", "middle", "late"]
+                    }
+                },
+                "description": "Inferred customer profile"
+            }
+        },
+        "required": ["summary", "key_moments", "predicted_questions", "customer_profile"]
+    }
+}
 
 
 class SummarizerAgent:
+    """Agent that maintains conversation summary using tool use."""
+
     def __init__(self):
         settings = get_settings()
         self.client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
@@ -48,6 +99,8 @@ class SummarizerAgent:
             model=self.model,
             max_tokens=1024,
             system=SYSTEM_PROMPT,
+            tools=[SUMMARIZER_TOOL],
+            tool_choice={"type": "tool", "name": "update_summary"},
             messages=[{"role": "user", "content": user_message}],
         )
 
@@ -58,6 +111,7 @@ class SummarizerAgent:
         previous_state: SummarizerState | None,
         recent_transcript: str,
     ) -> str:
+        """Format input for Claude."""
         parts = []
 
         if previous_state and previous_state.summary:
@@ -68,35 +122,36 @@ class SummarizerAgent:
         return "\n\n".join(parts)
 
     def _parse_response(self, response) -> SummarizerState:
-        content = response.content[0].text
+        """Parse tool use response."""
+        # Find the tool use block
+        for block in response.content:
+            if block.type == "tool_use" and block.name == "update_summary":
+                data = block.input
 
-        json_match = re.search(r"\{.*\}", content, re.DOTALL)
-        if json_match:
-            data = json.loads(json_match.group())
+                key_moments = [
+                    KeyMoment(
+                        quote=m.get("quote", ""),
+                        why_important=m.get("why_important", ""),
+                        timestamp=m.get("timestamp"),
+                    )
+                    for m in data.get("key_moments", [])
+                ]
 
-            key_moments = [
-                KeyMoment(
-                    quote=m.get("quote", ""),
-                    why_important=m.get("why_important", ""),
-                    timestamp=m.get("timestamp"),
+                predicted_questions = [
+                    PredictedQuestion(
+                        question=q.get("question", ""),
+                        probability=q.get("probability", 0.5),
+                        domain=q.get("domain"),
+                    )
+                    for q in data.get("predicted_questions", [])
+                ]
+
+                return SummarizerState(
+                    summary=data.get("summary", ""),
+                    key_moments=key_moments,
+                    predicted_questions=predicted_questions,
+                    customer_profile=data.get("customer_profile", {}),
                 )
-                for m in data.get("key_moments", [])
-            ]
 
-            predicted_questions = [
-                PredictedQuestion(
-                    question=q.get("question", ""),
-                    probability=q.get("probability", 0.5),
-                    domain=q.get("domain"),
-                )
-                for q in data.get("predicted_questions", [])
-            ]
-
-            return SummarizerState(
-                summary=data.get("summary", ""),
-                key_moments=key_moments,
-                predicted_questions=predicted_questions,
-                customer_profile=data.get("customer_profile", {}),
-            )
-
-        return SummarizerState(summary=content[:500])
+        # Fallback if tool use not found
+        return SummarizerState(summary="Unable to summarize conversation.")

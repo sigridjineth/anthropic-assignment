@@ -1,4 +1,9 @@
 from .session import SessionStore, Session
-from .orchestrator import Orchestrator
+from .skills import SkillManager, skill_manager
 
-__all__ = ["SessionStore", "Session", "Orchestrator"]
+# Import Orchestrator lazily to avoid circular imports
+def get_orchestrator():
+    from .orchestrator import Orchestrator
+    return Orchestrator()
+
+__all__ = ["SessionStore", "Session", "SkillManager", "skill_manager", "get_orchestrator"]

@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -6,8 +7,28 @@ from pathlib import Path
 
 from .api import router
 from .services.session import session_store
+from .services.skills import skill_manager
 
-app = FastAPI(title="Sales Copilot", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan - initialize skills on startup."""
+    # Startup: Initialize skill manager (upload skills to Anthropic)
+    print("Initializing skills via Anthropic Skills API...")
+    try:
+        await skill_manager.initialize()
+        print(f"Skills initialized: {[d.value for d in skill_manager.available_domains]}")
+    except Exception as e:
+        print(f"Warning: Could not initialize skills: {e}")
+        print("App will run without pre-uploaded skills (fallback mode)")
+
+    yield
+
+    # Shutdown: cleanup if needed
+    print("Shutting down...")
+
+
+app = FastAPI(title="Interview Copilot", version="0.1.0", lifespan=lifespan)
 
 # Mount static files and templates
 BASE_DIR = Path(__file__).resolve().parent.parent

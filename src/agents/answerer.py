@@ -1,96 +1,83 @@
 """
-Answerer Agent - Generates answers using dynamically loaded skills.
+Answerer Agent - Generates answers using the official Claude Skills API.
 
-## Skill Loading Approach
-
-This implementation uses **prompt injection** to load skills:
-1. Skills are stored locally in `skills/{domain}/SKILL.md`
-2. When activated, skill content is loaded and injected into the system prompt
-3. Claude uses this context to generate informed answers
-
-This is a demo-friendly approach that works offline without API setup.
-
-## Official Skills API (Production)
-
-For production, Anthropic's official Skills API provides:
-- `container.skills` parameter with `skill_id` and `version`
-- Code execution environment for skill execution
-- Versioning and skill management via `/v1/skills` endpoint
-
-Example:
-```python
-response = client.beta.messages.create(
-    model="claude-sonnet-4-5-20250929",
-    betas=["code-execution-2025-08-25", "skills-2025-10-02"],
-    container={
-        "skills": [
-            {"type": "custom", "skill_id": "skill_01xxx", "version": "latest"}
-        ]
-    },
-    tools=[{"type": "code_execution_20250825", "name": "code_execution"}]
-)
-```
+This implementation uses:
+- Official Skills API with container.skills parameter
+- Code execution tool for skill execution
+- Tool use for structured JSON output
 
 See: https://platform.claude.com/docs/en/build-with-claude/skills-guide
 """
 
-import json
-import re
-from pathlib import Path
 import anthropic
 from ..config import get_settings
 from ..models import AnswerDraft, Source, SkillDomain
+from ..services.skills import skill_manager, BETAS
 
-SKILLS_DIR = Path(__file__).resolve().parent.parent.parent / "skills"
-
+# System prompt for the answerer
 SYSTEM_PROMPT = """You are a Technical Sales assistant helping answer customer questions during a sales call.
 
-You have access to specialized knowledge through the following Skills. Use this knowledge to provide accurate, helpful answers.
-
-{skills_content}
+You have access to specialized knowledge through Skills that have been loaded into your environment.
+Use this knowledge to provide accurate, helpful answers.
 
 Instructions:
-1. Use the knowledge from the Skills above to provide accurate answers
+1. Use the knowledge from your Skills to provide accurate answers
 2. Cite sources when available (mention which skill/file the info comes from)
 3. Include appropriate caveats (e.g., "timelines subject to change")
 4. Suggest follow-up questions the sales rep could ask
 5. If unsure, say so clearly
 
-Your output must be valid JSON:
-{{
-    "answer": "Your response (conversational tone, suitable for reading aloud)",
-    "sources": [{{"title": "Source name", "file": "skill/file.md", "excerpt": "Relevant quote"}}],
-    "confidence": 0.0-1.0,
-    "caveats": ["Important disclaimers"],
-    "followups": ["Suggested follow-up questions"]
-}}"""
+Use the generate_answer tool to provide your response."""
 
-
-def load_skill_content(domain: SkillDomain) -> str | None:
-    """Load skill content from local files."""
-    skill_dir = SKILLS_DIR / domain.value
-    if not skill_dir.exists():
-        return None
-
-    content_parts = []
-
-    # Load SKILL.md
-    skill_md = skill_dir / "SKILL.md"
-    if skill_md.exists():
-        content_parts.append(f"=== SKILL: {domain.value.upper()} ===\n")
-        content_parts.append(skill_md.read_text())
-
-    # Load reference files
-    refs_dir = skill_dir / "references"
-    if refs_dir.exists():
-        for ref_file in refs_dir.glob("*.md"):
-            content_parts.append(f"\n--- Reference: {ref_file.name} ---\n")
-            content_parts.append(ref_file.read_text())
-
-    return "\n".join(content_parts) if content_parts else None
+# Tool definition for structured output
+ANSWER_TOOL = {
+    "name": "generate_answer",
+    "description": "Generate an answer to the customer's question using available skills",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "answer": {
+                "type": "string",
+                "description": "Your response (conversational tone, suitable for reading aloud)"
+            },
+            "sources": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string", "description": "Source name"},
+                        "file": {"type": "string", "description": "skill/file.md path"},
+                        "excerpt": {"type": ["string", "null"], "description": "Relevant quote"}
+                    },
+                    "required": ["title", "file"]
+                },
+                "description": "Sources used for the answer"
+            },
+            "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Confidence score 0.0-1.0"
+            },
+            "caveats": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Important disclaimers or caveats"
+            },
+            "followups": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Suggested follow-up questions"
+            }
+        },
+        "required": ["answer", "sources", "confidence", "caveats", "followups"]
+    }
+}
 
 
 class AnswererAgent:
+    """Agent that generates answers using official Skills API and tool use."""
+
     def __init__(self):
         settings = get_settings()
         self.client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
@@ -102,59 +89,85 @@ class AnswererAgent:
         context: str,
         skill_domains: list[SkillDomain],
     ) -> AnswerDraft:
-        """Generate an answer using the specified skills."""
-        # Load skill content
-        skills_content_parts = []
-        for domain in skill_domains[:4]:  # Max 4 skills
-            content = load_skill_content(domain)
-            if content:
-                skills_content_parts.append(content)
+        """Generate an answer using the specified skills via official API."""
+        # Ensure skill manager is initialized
+        if not skill_manager.is_initialized:
+            await skill_manager.initialize()
 
-        skills_content = (
-            "\n\n".join(skills_content_parts)
-            if skills_content_parts
-            else "No specific skills loaded. Answer based on general knowledge."
-        )
+        # Get container.skills config
+        skills_config = skill_manager.get_skills_config(skill_domains[:4])  # Max 4 skills
 
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=2048,
-            system=SYSTEM_PROMPT.format(skills_content=skills_content),
-            messages=[
+        # Build tools list - always include our answer tool
+        tools = [ANSWER_TOOL]
+
+        # Build the request
+        request_params = {
+            "model": self.model,
+            "max_tokens": 4096,
+            "system": SYSTEM_PROMPT,
+            "tools": tools,
+            "tool_choice": {"type": "tool", "name": "generate_answer"},
+            "messages": [
                 {
                     "role": "user",
                     "content": f"Context from the conversation:\n{context}\n\nQuestion to answer:\n{question}",
                 }
             ],
-        )
+        }
+
+        # Add skills via container if available
+        if skills_config:
+            # Add code execution tool for skills
+            tools.append({"type": "code_execution_20250825", "name": "code_execution"})
+            request_params["betas"] = BETAS
+            request_params["container"] = {"skills": skills_config}
+
+            # Use beta endpoint
+            response = self.client.beta.messages.create(**request_params)
+        else:
+            # Fallback to standard API without skills
+            response = self.client.messages.create(**request_params)
 
         return self._parse_response(response, [d.value for d in skill_domains])
 
     def _parse_response(self, response, skills_used: list[str]) -> AnswerDraft:
-        content = response.content[0].text
+        """Parse tool use response."""
+        # Find the tool use block
+        for block in response.content:
+            if hasattr(block, "type") and block.type == "tool_use" and block.name == "generate_answer":
+                data = block.input
+                return AnswerDraft(
+                    answer=data.get("answer", ""),
+                    sources=[
+                        Source(
+                            title=s.get("title", ""),
+                            file=s.get("file", ""),
+                            excerpt=s.get("excerpt"),
+                        )
+                        for s in data.get("sources", [])
+                    ],
+                    confidence=data.get("confidence", 0.5),
+                    caveats=data.get("caveats", []),
+                    followups=data.get("followups", []),
+                    skills_used=skills_used,
+                )
 
-        json_match = re.search(r"\{.*\}", content, re.DOTALL)
-        if json_match:
-            data = json.loads(json_match.group())
+        # Fallback: try to extract text content
+        text_content = ""
+        for block in response.content:
+            if hasattr(block, "text"):
+                text_content += block.text
+
+        if text_content:
             return AnswerDraft(
-                answer=data.get("answer", content),
-                sources=[
-                    Source(
-                        title=s.get("title", ""),
-                        file=s.get("file", ""),
-                        excerpt=s.get("excerpt"),
-                    )
-                    for s in data.get("sources", [])
-                ],
-                confidence=data.get("confidence", 0.5),
-                caveats=data.get("caveats", []),
-                followups=data.get("followups", []),
+                answer=text_content,
+                confidence=0.5,
                 skills_used=skills_used,
             )
 
-        # Fallback: return raw text
+        # Final fallback
         return AnswerDraft(
-            answer=content,
-            confidence=0.5,
+            answer="I couldn't generate an answer. Please try again.",
+            confidence=0.0,
             skills_used=skills_used,
         )

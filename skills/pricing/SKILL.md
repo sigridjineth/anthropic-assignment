@@ -1,3 +1,8 @@
+---
+name: sales-copilot-pricing
+description: Pricing and commercial terms skill for sales conversations. Includes pricing tiers, enterprise pricing guidance, discount policies, billing options, and templates for handling common pricing objections.
+---
+
 # Pricing Skill
 
 ## When to Use

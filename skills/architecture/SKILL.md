@@ -1,3 +1,8 @@
+---
+name: sales-copilot-architecture
+description: System architecture and technical implementation skill for sales conversations. Covers data flow, processing stages, performance, scalability, integration patterns, and technical depth guidelines for different audiences.
+---
+
 # Architecture Skill
 
 ## When to Use
