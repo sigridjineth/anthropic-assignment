@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Copilot - Prepare Your Call{% endblock %}
+
+{% block content %}
+<div class="landing-container" x-data="landingApp()">
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Sales Copilot</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-wrapper">
+            <!-- Form Section -->
+            <section class="form-section" x-show="!prepResult">
+                <h1 class="section-title">Prepare Your Call</h1>
+                <p class="section-subtitle">Enter details about your upcoming sales call to get AI-powered preparation.</p>
+
+                <form @submit.prevent="generatePrep" class="prep-form">
+                    <!-- Company -->
+                    <div class="form-group">
+                        <label for="company">Company Name</label>
+                        <input type="text" id="company" x-model="formData.company" placeholder="e.g., Acme Corp" required>
+                    </div>
+
+                    <!-- Industry -->
+                    <div class="form-group">
+                        <label for="industry">Industry</label>
+                        <select id="industry" x-model="formData.industry" required>
+                            <option value="">Select industry...</option>
+                            <option value="fintech">Fintech</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="enterprise">Enterprise</option>
+                            <option value="retail">Retail</option>
+                            <option value="saas">SaaS</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Attendee Roles -->
+                    <div class="form-group">
+                        <label>Attendee Roles</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="CTO" x-model="formData.roles">
+                                <span>CTO</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="VP Engineering" x-model="formData.roles">
+                                <span>VP Engineering</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="Security Lead" x-model="formData.roles">
+                                <span>Security Lead</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="Product Manager" x-model="formData.roles">
+                                <span>Product Manager</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="Data Engineer" x-model="formData.roles">
+                                <span>Data Engineer</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Call Purpose -->
+                    <div class="form-group">
+                        <label>Call Purpose</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="purpose" value="discovery" x-model="formData.purpose">
+                                <span>Discovery</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="purpose" value="technical" x-model="formData.purpose">
+                                <span>Technical Deep Dive</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="purpose" value="pricing" x-model="formData.purpose">
+                                <span>Pricing Discussion</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Sensitive Topics -->
+                    <div class="form-group">
+                        <label>Sensitive Topics</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="soc2" x-model="formData.sensitive_topics">
+                                <span>Compliance/SOC2</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="on_prem" x-model="formData.sensitive_topics">
+                                <span>On-premises</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="data_residency" x-model="formData.sensitive_topics">
+                                <span>Data Residency</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="pricing" x-model="formData.sensitive_topics">
+                                <span>Pricing Concerns</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Competitors -->
+                    <div class="form-group">
+                        <label for="competitors">Known Competitors (optional)</label>
+                        <input type="text" id="competitors" x-model="formData.competitors" placeholder="e.g., Competitor A, Competitor B">
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn-primary" :disabled="loading">
+                        <span x-show="!loading">Generate Session Brief</span>
+                        <span x-show="loading" class="loading-spinner"></span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" x-show="prepResult" x-cloak>
+                <div class="results-header">
+                    <h1 class="section-title">Session Brief</h1>
+                    <button @click="resetForm" class="btn-secondary">Start Over</button>
+                </div>
+
+                <!-- Session Brief -->
+                <div class="result-card">
+                    <h3>Overview</h3>
+                    <p x-text="prepResult?.session_brief"></p>
+                </div>
+
+                <!-- Likely Topics -->
+                <div class="result-card">
+                    <h3>Likely Topics</h3>
+                    <ul class="topic-list">
+                        <template x-for="topic in prepResult?.likely_topics || []" :key="topic.topic">
+                            <li>
+                                <strong x-text="topic.topic"></strong>
+                                <span class="topic-reason" x-text="topic.reason"></span>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+
+                <!-- Discovery Questions -->
+                <div class="result-card">
+                    <h3>Discovery Questions</h3>
+                    <ol class="question-list">
+                        <template x-for="(question, index) in prepResult?.discovery_questions || []" :key="index">
+                            <li x-text="question"></li>
+                        </template>
+                    </ol>
+                </div>
+
+                <!-- Recommended Skills -->
+                <div class="result-card">
+                    <h3>Recommended Skills</h3>
+                    <div class="skill-tags">
+                        <template x-for="skill in prepResult?.recommended_skills || []" :key="skill">
+                            <span class="skill-tag" x-text="skill"></span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Start Session Button -->
+                <button @click="startSession" class="btn-primary btn-large" :disabled="loading">
+                    <span x-show="!loading">Start Session</span>
+                    <span x-show="loading" class="loading-spinner"></span>
+                </button>
+            </section>
+
+            <!-- Error Message -->
+            <div class="error-message" x-show="error" x-text="error" x-cloak></div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function landingApp() {
+    return {
+        formData: {
+            company: '',
+            industry: '',
+            roles: [],
+            purpose: 'discovery',
+            sensitive_topics: [],
+            competitors: ''
+        },
+        prepResult: null,
+        loading: false,
+        error: null,
+
+        async generatePrep() {
+            this.loading = true;
+            this.error = null;
+
+            try {
+                const response = await fetch('/api/prep', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate session brief');
+                }
+
+                this.prepResult = await response.json();
+            } catch (e) {
+                this.error = e.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async startSession() {
+            this.loading = true;
+            this.error = null;
+
+            try {
+                const response = await fetch('/api/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        company: this.formData.company,
+                        prep_input: this.formData
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create session');
+                }
+
+                const data = await response.json();
+                window.location.href = `/session/${data.session_id}`;
+            } catch (e) {
+                this.error = e.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        resetForm() {
+            this.prepResult = null;
+            this.error = null;
+        }
+    };
+}
+</script>
+{% endblock %}

@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Copilot - Session: {{ company }}{% endblock %}
+
+{% block content %}
+<div class="session-container" x-data="sessionApp('{{ session_id }}')">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Sales Copilot</span>
+            </div>
+            <span class="session-name">Session: {{ company }}</span>
+        </div>
+        <a href="/" class="btn-secondary">End Call</a>
+    </header>
+
+    <!-- Main Content -->
+    <main class="session-main">
+        <!-- Left Panel: Transcript -->
+        <div class="panel transcript-panel">
+            <div class="panel-header">
+                <h2>Transcript</h2>
+            </div>
+
+            <!-- Add Entry Form -->
+            <div class="add-entry-form">
+                <div class="form-row">
+                    <select x-model="newEntry.speaker" class="speaker-select">
+                        <option value="prospect">Prospect</option>
+                        <option value="sales">Sales</option>
+                        <option value="se">SE</option>
+                    </select>
+                </div>
+                <textarea
+                    x-model="newEntry.text"
+                    placeholder="Enter what was said..."
+                    rows="3"
+                    @keydown.meta.enter="addEntry"
+                    @keydown.ctrl.enter="addEntry"
+                ></textarea>
+                <button @click="addEntry" class="btn-primary" :disabled="loading || !newEntry.text.trim()">
+                    <span x-show="!loading">Add Entry</span>
+                    <span x-show="loading" class="loading-spinner"></span>
+                </button>
+            </div>
+
+            <!-- Transcript Entries -->
+            <div class="transcript-entries">
+                <template x-for="(entry, index) in state.transcript || []" :key="index">
+                    <div class="transcript-entry" :class="'speaker-' + entry.speaker">
+                        <div class="entry-header">
+                            <span class="speaker-badge" x-text="entry.speaker"></span>
+                            <span class="entry-time" x-text="formatTime(entry.timestamp)"></span>
+                        </div>
+                        <p class="entry-text" x-text="entry.text"></p>
+                    </div>
+                </template>
+                <div x-show="!state.transcript?.length" class="empty-state">
+                    <p>No transcript entries yet. Add the conversation as it happens.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Copilot -->
+        <div class="panel copilot-panel">
+            <div class="panel-header">
+                <h2>Copilot</h2>
+            </div>
+
+            <div class="copilot-content">
+                <!-- Live Summary -->
+                <div class="copilot-section" x-show="state.summarizer_state?.summary">
+                    <h3>Live Summary</h3>
+                    <p class="summary-text" x-text="state.summarizer_state?.summary"></p>
+                </div>
+
+                <!-- Skill Fired -->
+                <div class="copilot-section" x-show="state.skill_fired_log?.length">
+                    <h3>Skill Fired</h3>
+                    <template x-for="(event, index) in (state.skill_fired_log || []).slice(-3).reverse()" :key="index">
+                        <div class="skill-fired-item">
+                            <div class="skill-fired-header">
+                                <span class="skill-fired-icon">⚡</span>
+                                <span class="skill-fired-domains" x-text="event.domains.join(', ')"></span>
+                                <span class="skill-fired-confidence" x-text="Math.round(event.confidence * 100) + '%'"></span>
+                            </div>
+                            <p class="skill-fired-reason" x-text="event.trigger_reason"></p>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Active Skills -->
+                <div class="copilot-section">
+                    <h3>Active Skills</h3>
+                    <div class="skill-list">
+                        <template x-for="skill in state.active_skills || []" :key="skill">
+                            <span class="skill-tag skill-attached" x-text="skill"></span>
+                        </template>
+                        <template x-for="skill in (state.recommended_skills || []).filter(s => !(state.active_skills || []).includes(s))" :key="skill">
+                            <span class="skill-tag skill-recommended" x-text="skill"></span>
+                        </template>
+                        <span x-show="!state.active_skills?.length && !state.recommended_skills?.length" class="no-skills">No skills active</span>
+                    </div>
+                </div>
+
+                <!-- Suggested Answer -->
+                <div class="copilot-section answer-section" x-show="state.current_answer">
+                    <h3>Suggested Answer</h3>
+                    <div class="answer-card">
+                        <p class="answer-text" x-text="state.current_answer?.answer"></p>
+
+                        <!-- Sources -->
+                        <div class="answer-sources" x-show="state.current_answer?.sources?.length">
+                            <h4>Sources</h4>
+                            <ul>
+                                <template x-for="source in state.current_answer?.sources || []" :key="source.file">
+                                    <li>
+                                        <span class="source-file" x-text="source.file"></span>
+                                        <span class="source-title" x-text="source.title" x-show="source.title"></span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+
+                        <!-- Caveats -->
+                        <div class="answer-caveats" x-show="state.current_answer?.caveats?.length">
+                            <h4>Notes</h4>
+                            <ul>
+                                <template x-for="caveat in state.current_answer?.caveats || []" :key="caveat">
+                                    <li x-text="caveat"></li>
+                                </template>
+                            </ul>
+                        </div>
+
+                        <!-- Confidence -->
+                        <div class="answer-confidence">
+                            <span>Confidence:</span>
+                            <span class="confidence-value" x-text="Math.round((state.current_answer?.confidence || 0) * 100) + '%'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ask Copilot -->
+                <div class="copilot-section ask-section">
+                    <h3>Ask Copilot</h3>
+                    <div class="ask-form">
+                        <input
+                            type="text"
+                            x-model="question"
+                            placeholder="Type your question..."
+                            @keydown.enter="askQuestion"
+                        >
+                        <button @click="askQuestion" class="btn-primary" :disabled="askLoading || !question.trim()">
+                            <span x-show="!askLoading">Ask</span>
+                            <span x-show="askLoading" class="loading-spinner"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Error Toast -->
+    <div class="error-toast" x-show="error" x-text="error" x-cloak></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function sessionApp(sessionId) {
+    return {
+        sessionId: sessionId,
+        state: {},
+        newEntry: {
+            speaker: 'prospect',
+            text: ''
+        },
+        question: '',
+        loading: false,
+        askLoading: false,
+        error: null,
+
+        async init() {
+            await this.fetchState();
+        },
+
+        async fetchState() {
+            try {
+                const response = await fetch(`/api/session/${this.sessionId}/state`);
+                if (response.ok) {
+                    this.state = await response.json();
+                }
+            } catch (e) {
+                console.error('Failed to fetch state:', e);
+            }
+        },
+
+        async addEntry() {
+            if (!this.newEntry.text.trim()) return;
+
+            this.loading = true;
+            this.error = null;
+
+            try {
+                const response = await fetch(`/api/session/${this.sessionId}/transcript`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.newEntry)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to add transcript entry');
+                }
+
+                this.state = await response.json();
+                this.newEntry.text = '';
+            } catch (e) {
+                this.error = e.message;
+                setTimeout(() => this.error = null, 3000);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async askQuestion() {
+            if (!this.question.trim()) return;
+
+            this.askLoading = true;
+            this.error = null;
+
+            try {
+                const response = await fetch(`/api/session/${this.sessionId}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: this.question })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to get answer');
+                }
+
+                const data = await response.json();
+                this.state = data.state;
+                this.question = '';
+            } catch (e) {
+                this.error = e.message;
+                setTimeout(() => this.error = null, 3000);
+            } finally {
+                this.askLoading = false;
+            }
+        },
+
+        formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+    };
+}
+</script>
+{% endblock %}
