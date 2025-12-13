@@ -1,190 +1,137 @@
 {% extends "base.html" %}
 
-{% block title %}Sales Copilot - Prepare Your Call{% endblock %}
+{% block title %}Interview Copilot{% endblock %}
 
 {% block content %}
 <div class="landing-container" x-data="landingApp()">
-    <!-- Header -->
-    <header class="header">
-        <div class="logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Main Content - ChatGPT Style -->
+    <main class="chatgpt-main">
+        <!-- Logo at top -->
+        <div class="chatgpt-logo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>Sales Copilot</span>
         </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="content-wrapper">
-            <!-- Form Section -->
-            <section class="form-section" x-show="!prepResult">
-                <h1 class="section-title">Prepare Your Call</h1>
-                <p class="section-subtitle">Enter details about your upcoming sales call to get AI-powered preparation.</p>
+        <!-- Title -->
+        <h1 class="chatgpt-title">What's on the agenda today?</h1>
 
-                <form @submit.prevent="generatePrep" class="prep-form">
-                    <!-- Company -->
-                    <div class="form-group">
-                        <label for="company">Company Name</label>
-                        <input type="text" id="company" x-model="formData.company" placeholder="e.g., Acme Corp" required>
+        <!-- Input Area -->
+        <div class="chatgpt-input-container">
+            <form @submit.prevent="startSession" class="chatgpt-form">
+                <textarea
+                    x-model="context"
+                    @keydown.enter.ctrl="startSession"
+                    @keydown.enter.meta="startSession"
+                    placeholder="Describe your upcoming call... e.g., Meeting with Acme Payments (Fintech), Head of Engineering. Technical discovery. Concerned about compliance and on-prem options."
+                    class="chatgpt-input"
+                    rows="1"
+                    x-ref="input"
+                    @input="autoResize"
+                ></textarea>
+
+                <div class="chatgpt-input-footer">
+                    <!-- Left side: thinking mode -->
+                    <div class="thinking-toggle" @click="thinkingMode = !thinkingMode">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <span x-text="thinkingMode ? 'Deep thinking' : 'Light thinking'"></span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
                     </div>
 
-                    <!-- Industry -->
-                    <div class="form-group">
-                        <label for="industry">Industry</label>
-                        <select id="industry" x-model="formData.industry" required>
-                            <option value="">Select industry...</option>
-                            <option value="fintech">Fintech</option>
-                            <option value="healthcare">Healthcare</option>
-                            <option value="enterprise">Enterprise</option>
-                            <option value="retail">Retail</option>
-                            <option value="saas">SaaS</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    <!-- Attendee Roles -->
-                    <div class="form-group">
-                        <label>Attendee Roles</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="CTO" x-model="formData.roles">
-                                <span>CTO</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="VP Engineering" x-model="formData.roles">
-                                <span>VP Engineering</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="Security Lead" x-model="formData.roles">
-                                <span>Security Lead</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="Product Manager" x-model="formData.roles">
-                                <span>Product Manager</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="Data Engineer" x-model="formData.roles">
-                                <span>Data Engineer</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Call Purpose -->
-                    <div class="form-group">
-                        <label>Call Purpose</label>
-                        <div class="radio-group">
-                            <label class="radio-label">
-                                <input type="radio" name="purpose" value="discovery" x-model="formData.purpose">
-                                <span>Discovery</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="purpose" value="technical" x-model="formData.purpose">
-                                <span>Technical Deep Dive</span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="purpose" value="pricing" x-model="formData.purpose">
-                                <span>Pricing Discussion</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Sensitive Topics -->
-                    <div class="form-group">
-                        <label>Sensitive Topics</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="soc2" x-model="formData.sensitive_topics">
-                                <span>Compliance/SOC2</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="on_prem" x-model="formData.sensitive_topics">
-                                <span>On-premises</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="data_residency" x-model="formData.sensitive_topics">
-                                <span>Data Residency</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" value="pricing" x-model="formData.sensitive_topics">
-                                <span>Pricing Concerns</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Competitors -->
-                    <div class="form-group">
-                        <label for="competitors">Known Competitors (optional)</label>
-                        <input type="text" id="competitors" x-model="formData.competitors" placeholder="e.g., Competitor A, Competitor B">
-                    </div>
-
-                    <!-- Submit -->
-                    <button type="submit" class="btn-primary" :disabled="loading">
-                        <span x-show="!loading">Generate Session Brief</span>
-                        <span x-show="loading" class="loading-spinner"></span>
+                    <!-- Right side: submit button -->
+                    <button
+                        type="submit"
+                        class="chatgpt-submit"
+                        :disabled="!context.trim() || loading"
+                        :class="{ 'active': context.trim() && !loading }"
+                    >
+                        <span x-show="loading" class="loading-spinner dark"></span>
+                        <svg x-show="!loading" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14v-4H7l5-6v4h4l-5 6z" transform="rotate(90, 12, 12)"/>
+                        </svg>
                     </button>
-                </form>
-            </section>
-
-            <!-- Results Section -->
-            <section class="results-section" x-show="prepResult" x-cloak>
-                <div class="results-header">
-                    <h1 class="section-title">Session Brief</h1>
-                    <button @click="resetForm" class="btn-secondary">Start Over</button>
                 </div>
+            </form>
+        </div>
 
-                <!-- Session Brief -->
-                <div class="result-card">
-                    <h3>Overview</h3>
+        <!-- Subtle hint -->
+        <p class="chatgpt-hint">Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to start session</p>
+    </main>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" x-show="showResult" x-cloak @click.self="showResult = false">
+        <div class="modal-content" x-show="showResult" x-transition>
+            <div class="modal-header">
+                <h2>Session Ready</h2>
+                <button @click="showResult = false" class="modal-close">&times;</button>
+            </div>
+
+            <div class="modal-body" x-show="prepResult">
+                <!-- Brief -->
+                <div class="result-section">
+                    <h3>Brief</h3>
                     <p x-text="prepResult?.session_brief"></p>
                 </div>
 
                 <!-- Likely Topics -->
-                <div class="result-card">
+                <div class="result-section">
                     <h3>Likely Topics</h3>
-                    <ul class="topic-list">
+                    <div class="topic-tags">
                         <template x-for="topic in prepResult?.likely_topics || []" :key="topic.topic">
-                            <li>
-                                <strong x-text="topic.topic"></strong>
-                                <span class="topic-reason" x-text="topic.reason"></span>
-                            </li>
-                        </template>
-                    </ul>
-                </div>
-
-                <!-- Discovery Questions -->
-                <div class="result-card">
-                    <h3>Discovery Questions</h3>
-                    <ol class="question-list">
-                        <template x-for="(question, index) in prepResult?.discovery_questions || []" :key="index">
-                            <li x-text="question"></li>
-                        </template>
-                    </ol>
-                </div>
-
-                <!-- Recommended Skills -->
-                <div class="result-card">
-                    <h3>Recommended Skills</h3>
-                    <div class="skill-tags">
-                        <template x-for="skill in prepResult?.recommended_skills || []" :key="skill">
-                            <span class="skill-tag" x-text="skill"></span>
+                            <div class="topic-tag">
+                                <span class="topic-name" x-text="topic.topic"></span>
+                                <span class="topic-confidence" x-text="topic.confidence ? `${Math.round(topic.confidence * 100)}%` : ''"></span>
+                            </div>
                         </template>
                     </div>
                 </div>
 
-                <!-- Start Session Button -->
-                <button @click="startSession" class="btn-primary btn-large" :disabled="loading">
-                    <span x-show="!loading">Start Session</span>
-                    <span x-show="loading" class="loading-spinner"></span>
-                </button>
-            </section>
+                <!-- Skills -->
+                <div class="result-section">
+                    <h3>Skills</h3>
+                    <div class="skill-status-list">
+                        <template x-for="skill in prepResult?.recommended_skills || []" :key="skill">
+                            <div class="skill-status-item attached">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5"/>
+                                </svg>
+                                <span x-text="skill"></span>
+                                <span class="skill-note">pre-attached</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
 
-            <!-- Error Message -->
-            <div class="error-message" x-show="error" x-text="error" x-cloak></div>
+                <!-- Discovery Questions (collapsible) -->
+                <details class="result-section collapsible">
+                    <summary>Discovery Questions</summary>
+                    <ol class="question-list">
+                        <template x-for="(q, i) in prepResult?.discovery_questions || []" :key="i">
+                            <li x-text="q"></li>
+                        </template>
+                    </ol>
+                </details>
+            </div>
+
+            <div class="modal-footer">
+                <button @click="showResult = false" class="btn-secondary">Back</button>
+                <button @click="enterSession" class="btn-primary" :disabled="entering">
+                    <span x-show="!entering">Enter Session</span>
+                    <span x-show="entering" class="loading-spinner"></span>
+                </button>
+            </div>
         </div>
-    </main>
+    </div>
+
+    <!-- Error Toast -->
+    <div class="error-toast" x-show="error" x-cloak x-text="error" x-transition></div>
 </div>
 {% endblock %}
 
@@ -192,52 +139,61 @@
 <script>
 function landingApp() {
     return {
-        formData: {
-            company: '',
-            industry: '',
-            roles: [],
-            purpose: 'discovery',
-            sensitive_topics: [],
-            competitors: ''
-        },
+        context: '',
+        thinkingMode: false,
         prepResult: null,
+        showResult: false,
         loading: false,
+        entering: false,
         error: null,
 
-        async generatePrep() {
+        autoResize() {
+            const el = this.$refs.input;
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+        },
+
+        async startSession() {
+            if (!this.context.trim()) return;
+
             this.loading = true;
             this.error = null;
 
             try {
+                // Send raw context - let Claude do the inference
                 const response = await fetch('/api/prep', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(this.formData)
+                    body: JSON.stringify({
+                        raw_context: this.context
+                    })
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to generate session brief');
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to prepare session');
                 }
 
                 this.prepResult = await response.json();
+                this.showResult = true;
             } catch (e) {
                 this.error = e.message;
+                setTimeout(() => this.error = null, 5000);
             } finally {
                 this.loading = false;
             }
         },
 
-        async startSession() {
-            this.loading = true;
-            this.error = null;
+        async enterSession() {
+            this.entering = true;
 
             try {
                 const response = await fetch('/api/session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        company: this.formData.company,
-                        prep_input: this.formData
+                        raw_context: this.context,
+                        prep_result: this.prepResult
                     })
                 });
 
@@ -249,14 +205,10 @@ function landingApp() {
                 window.location.href = `/session/${data.session_id}`;
             } catch (e) {
                 this.error = e.message;
+                setTimeout(() => this.error = null, 5000);
             } finally {
-                this.loading = false;
+                this.entering = false;
             }
-        },
-
-        resetForm() {
-            this.prepResult = null;
-            this.error = null;
         }
     };
 }

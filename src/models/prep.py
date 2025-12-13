@@ -4,12 +4,13 @@ from pydantic import BaseModel, Field
 class PrepInput(BaseModel):
     """Input for session preparation."""
 
-    company: str = Field(..., min_length=1)
-    industry: str = Field(..., min_length=1)
+    company: str = Field(default="Unknown Company")
+    industry: str = Field(default="enterprise")
     roles: list[str] = Field(default_factory=list)
     purpose: str = Field(default="discovery")  # discovery | technical | pricing
     sensitive_topics: list[str] = Field(default_factory=list)
     competitors: str | None = None
+    raw_context: str | None = None  # Raw user input for AI to parse
 
 
 class LikelyTopic(BaseModel):
@@ -17,6 +18,7 @@ class LikelyTopic(BaseModel):
 
     topic: str
     reason: str
+    confidence: float | None = None  # 0.0 - 1.0
 
 
 class PrepResult(BaseModel):

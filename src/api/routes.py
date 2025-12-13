@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from ..models import PrepInput, TranscriptEntry
+from ..models import PrepInput, PrepResult, TranscriptEntry
 from ..agents import PrepAgent
 from ..services.session import session_store
 from ..services.orchestrator import Orchestrator
@@ -11,8 +11,8 @@ orchestrator = Orchestrator()
 
 
 class CreateSessionRequest(BaseModel):
-    company: str
-    prep_input: PrepInput | None = None
+    raw_context: str | None = None
+    prep_result: dict | None = None  # Pre-computed prep result from landing page
 
 
 class TranscriptRequest(BaseModel):
@@ -34,12 +34,21 @@ async def generate_prep(input_data: PrepInput):
 @router.post("/api/session")
 async def create_session(request: CreateSessionRequest):
     """Create a new session."""
+    # Use pre-computed prep result if available
     prep_result = None
-    if request.prep_input:
-        prep_result = await prep_agent.prepare(request.prep_input)
+    if request.prep_result:
+        prep_result = PrepResult(**request.prep_result)
+
+    # Infer company from prep result or raw context
+    company = "Customer Session"
+    if prep_result and prep_result.session_brief:
+        # Extract company from brief (first sentence usually mentions it)
+        company = prep_result.session_brief.split(".")[0][:50]
+    elif request.raw_context:
+        company = request.raw_context[:50]
 
     session = session_store.create(
-        company=request.company,
+        company=company,
         prep_result=prep_result,
     )
 

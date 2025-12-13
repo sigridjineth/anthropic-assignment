@@ -14,8 +14,8 @@ See `PLAN.md` for full details.
 
 ## Core Concept
 
-**Technical Sales Copilot** — helps sales reps during customer calls by:
-1. **Pre-call (Landing)**: Generate session brief, likely topics, discovery questions
+**Interview Copilot** — helps sales reps during customer calls by:
+1. **Pre-call (Landing)**: User describes call → Claude infers context → generates brief, topics, skills
 2. **Live call (Session)**: Dynamic skill activation, real-time answers with sources
 3. **Post-call**: Case notes + skill update proposals (P1)
 
@@ -52,9 +52,10 @@ See `PLAN.md` for full details.
 - Skills content
 
 ### Phase 2: Landing Page
-- White ChatGPT-style form
-- Prep Agent (generates brief)
-- Session creation
+- ChatGPT-style centered input (natural language description)
+- Claude infers context (no rule-based parsing)
+- Prep Agent generates brief, likely topics, recommended skills
+- Modal shows "Session Ready" → Enter Session
 
 ### Phase 3: Session Page
 - Split panel (transcript + copilot)
