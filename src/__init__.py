@@ -1,1 +1,0 @@
-# Technical Sales Interview Copilot
