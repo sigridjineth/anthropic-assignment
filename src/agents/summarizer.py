@@ -6,15 +6,19 @@ See: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 """
 
 import anthropic
-from ..config import get_settings
+from ..config import get_settings, PERSONA_SYSTEM_CONTEXT
 from ..models import SummarizerState, KeyMoment, PredictedQuestion
 
-SYSTEM_PROMPT = """You are a conversation summarizer for a Technical Sales copilot. Analyze the transcript and provide a structured summary.
+SYSTEM_PROMPT = f"""{PERSONA_SYSTEM_CONTEXT}
+
+---
+
+You are a conversation summarizer helping Sigrid during a customer call. Analyze the transcript and provide a structured summary.
 
 Guidelines:
 - Keep the summary concise and focused on business implications
 - Key moments should capture decision-making signals or important requirements
-- Predicted questions should help the sales rep prepare
+- Predicted questions should help Sigrid prepare for what the customer might ask next
 - Customer profile should be inferred from the conversation
 
 Use the update_summary tool to provide your summary."""
@@ -52,7 +56,7 @@ SUMMARIZER_TOOL = {
                         "probability": {"type": "number", "description": "Likelihood 0.0-1.0"},
                         "domain": {
                             "type": ["string", "null"],
-                            "enum": ["roadmap", "architecture", "security", "pricing", None],
+                            "enum": ["cdp_context_editing", "cdp_memory", "cdp_skills", "fintech_patterns", "pricing_guidance", None],
                             "description": "Related skill domain"
                         }
                     },

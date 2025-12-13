@@ -6,13 +6,19 @@
 <div class="landing-container" x-data="landingApp()">
     <!-- Main Content - ChatGPT Style -->
     <main class="chatgpt-main">
-        <!-- Logo at top -->
-        <div class="chatgpt-logo">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+        <!-- Persona Card -->
+        <div class="persona-card">
+            <div class="persona-header">
+                <div class="persona-avatar">S</div>
+                <div class="persona-info">
+                    <h2 class="persona-name">Sigrid</h2>
+                    <p class="persona-role">Anthropic Developer Relations</p>
+                </div>
+            </div>
+            <div class="persona-details">
+                <p><strong>Role:</strong> Developer Relations IC</p>
+                <p><strong>Mission:</strong> Help developers build better with Claude</p>
+            </div>
         </div>
 
         <!-- Title -->
@@ -25,7 +31,7 @@
                     x-model="context"
                     @keydown.enter.ctrl="startSession"
                     @keydown.enter.meta="startSession"
-                    placeholder="Describe your upcoming call... e.g., Meeting with Acme Payments (Fintech), Head of Engineering. Technical discovery. Concerned about compliance and on-prem options."
+                    placeholder="Call with FinBot (fintech startup). Head of Engineering, Sarah Chen. They've been using Claude API for 6 months, having issues with long conversations and token costs."
                     class="chatgpt-input"
                     rows="1"
                     x-ref="input"

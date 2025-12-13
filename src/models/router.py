@@ -3,12 +3,13 @@ from pydantic import BaseModel, Field
 
 
 class SkillDomain(str, Enum):
-    """Available skill domains."""
+    """Available skill domains for CDP DevRel."""
 
-    ROADMAP = "roadmap"
-    ARCHITECTURE = "architecture"
-    SECURITY = "security"
-    PRICING = "pricing"
+    CDP_CONTEXT_EDITING = "cdp_context_editing"
+    CDP_MEMORY = "cdp_memory"
+    CDP_SKILLS = "cdp_skills"
+    FINTECH_PATTERNS = "fintech_patterns"
+    PRICING_GUIDANCE = "pricing_guidance"
 
 
 class SkillSuggestion(BaseModel):

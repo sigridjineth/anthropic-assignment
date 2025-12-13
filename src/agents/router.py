@@ -6,16 +6,21 @@ See: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 """
 
 import anthropic
-from ..config import get_settings
+from ..config import get_settings, PERSONA_SYSTEM_CONTEXT
 from ..models import RouterDecision, SkillSuggestion, SkillDomain
 
-SYSTEM_PROMPT = """You are a skill routing agent for a Technical Sales copilot. Analyze the transcript to determine if any skills should be activated.
+SYSTEM_PROMPT = f"""{PERSONA_SYSTEM_CONTEXT}
+
+---
+
+You are a skill routing agent helping Sigrid during a customer call. Analyze the transcript to determine which skills should be activated.
 
 Available skills:
-- roadmap: For questions about timelines, feature availability, GA dates, product direction
-- architecture: For questions about how things work, data flow, system design, technical implementation
-- security: For questions about SOC2, compliance, encryption, data residency, on-prem, privacy
-- pricing: For questions about costs, plans, enterprise pricing, discounts
+- cdp_context_editing: For questions about long conversations, token costs, context window, summarization, "Claude forgets"
+- cdp_memory: For questions about cross-session persistence, remembering users, state management
+- cdp_skills: For questions about packaging knowledge, RAG vs Skills, custom playbooks
+- fintech_patterns: For fintech customers, compliance concerns, regulatory questions
+- pricing_guidance: For questions about API pricing, token costs, tier recommendations, ROI
 
 Guidelines:
 - Set needs_skill to true only if a clear question or topic requiring specialized knowledge is detected
@@ -44,7 +49,7 @@ ROUTER_TOOL = {
                     "properties": {
                         "domain": {
                             "type": "string",
-                            "enum": ["roadmap", "architecture", "security", "pricing"],
+                            "enum": ["cdp_context_editing", "cdp_memory", "cdp_skills", "fintech_patterns", "pricing_guidance"],
                             "description": "Skill domain to activate"
                         },
                         "confidence": {

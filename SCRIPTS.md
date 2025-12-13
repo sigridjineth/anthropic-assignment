@@ -121,153 +121,389 @@
 
 ## [1:05-2:35] Live Session — 3개 질문
 
-### 화면 4 (1:05-1:15): Session UI
-
-```
-┌─────────────────────────────┬───────────────────────────────────────┐
-│                             │                                       │
-│  💬 TRANSCRIPT              │  🤖 COPILOT                           │
-│                             │                                       │
-│  [Starting...]              │  📦 Skills                            │
-│                             │  ✅ architecture (attached)           │
-│                             │  ✅ security (attached)               │
-│                             │  ○  roadmap (ready)                   │
-│                             │                                       │
-│                             │  ⚡ Skill Activity                    │
-│                             │  (waiting...)                         │
-│                             │                                       │
-└─────────────────────────────┴───────────────────────────────────────┘
-```
-
-**내레이션**:
-> "Two skills pre-attached. Roadmap ready if needed."
+# Live Session 페르소나 구체화: Anthropic DevRel 세일즈
 
 ---
 
-### 화면 5 (1:15-1:45): 첫 번째 질문 — 애매한 표현 → 맥락 유추
+## 페르소나 설정
+
+### 인터뷰어 (You): Anthropic DevRel
 
 ```
-┌─────────────────────────────┬───────────────────────────────────────┐
-│                             │                                       │
-│  💬 TRANSCRIPT              │  🤖 COPILOT                           │
-│                             │                                       │
-│  [00:15] Customer:          │  🧠 Context Analysis                  │
-│  "So, um... I'm curious     │  ───────────────────────────────────  │
-│  about the... you know,     │  • "technical part" + "data flows"    │
-│  the technical part.        │  • Role: Head of Engineering          │
-│  Like how the data          │                                       │
-│  actually flows through     │  🎯 Intent: Architecture question     │
-│  your system?"              │                                       │
-│                             │  ⚡ Using: architecture (pre-attached)│
-│  █████████████████████      │                                       │
-│                             │  💡 Suggested Answer                  │
-│                             │  ───────────────────────────────────  │
-│                             │  "3-stage pipeline:                   │
-│                             │   1. Ingestion — real-time streams    │
-│                             │   2. Transform — schema mapping       │
-│                             │   3. Sync — exactly-once delivery     │
-│                             │   P99: <100ms"                        │
-│                             │                                       │
-│                             │  📄 Source: architecture/dataflow.md  │
-└─────────────────────────────┴───────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   👤 You: Anthropic Developer Relations                             │
+│   ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│   Role: Developer Relations IC                                      │
+│   Mission: Help developers build better with Claude                 │
+│                                                                     │
+│   Today's call:                                                     │
+│   • Technical discovery with potential enterprise customer          │
+│   • They're evaluating Claude for their AI product                  │
+│   • Need to understand their use case, recommend CDP features       │
+│                                                                     │
+│   Your tools:                                                       │
+│   • Skills: CDP feature docs, pricing, case studies, best practices │
+│   • Goal: Match their problem to the right platform feature         │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
-
-**내레이션**:
-> "Customer says: 'I'm curious about the technical part, like how the data flows.'
-> 
-> Not a clean question. But the agent infers: architecture question.
-> Uses the **pre-attached** architecture skill. Answer ready, source cited."
-
-*[세일즈 역할]*:
-> "Our pipeline is three stages — ingestion, transform, sync. P99 under 100 milliseconds."
 
 ---
 
-### 화면 6 (1:45-2:10): 두 번째 질문 — 로드맵 (동적 attach)
+### 인터뷰이 (Customer): FinBot의 Head of Engineering
 
 ```
-┌─────────────────────────────┬───────────────────────────────────────┐
-│                             │                                       │
-│  💬 TRANSCRIPT              │  🤖 COPILOT                           │
-│                             │                                       │
-│  [00:45] Customer:          │  🧠 Context Analysis                  │
-│  "Got it. And when is       │  ───────────────────────────────────  │
-│  the new streaming          │  • "when shipping" = timeline Q       │
-│  feature shipping?          │  • Needs roadmap info                 │
-│  We need it for Q2."        │                                       │
-│                             │  ⚡ ATTACHING: roadmap                │
-│  █████████████████████      │  ───────────────────────────────────  │
-│                             │  Reason: Timeline question detected   │
-│                             │                                       │
-│                             │  📦 Skills (updated)                  │
-│                             │  ✅ architecture                      │
-│                             │  ✅ security                          │
-│                             │  ✅ roadmap ← just attached           │
-│                             │                                       │
-│                             │  💡 Suggested Answer                  │
-│                             │  ───────────────────────────────────  │
-│                             │  "Streaming: beta now, GA late Q1.    │
-│                             │   ⚠️ Dates subject to change.         │
-│                             │   Can connect you with PM."           │
-│                             │                                       │
-│                             │  📄 Source: roadmap/streaming.md      │
-│                             │  ⚠️ Policy: Forward-looking caveat    │
-└─────────────────────────────┴───────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   🏢 Customer: FinBot                                               │
+│   ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│   Company: FinBot (Series B fintech startup)                        │
+│   Product: AI-powered financial advisor chatbot                     │
+│   Users: 50K+ retail investors                                      │
+│                                                                     │
+│   Attendee: Sarah Chen, Head of Engineering                         │
+│   Background: Ex-Stripe, 8 years building payment systems           │
+│                                                                     │
+│   Current situation:                                                │
+│   • Using Claude API for 6 months                                   │
+│   • Chatbot handles portfolio questions, market analysis            │
+│   • Conversations get LONG (users ask follow-ups for 20+ turns)     │
+│                                                                     │
+│   Pain points:                                                      │
+│   • Token costs exploding as conversations grow                     │
+│   • Context window filling up, losing early context                 │
+│   • "Claude forgets what we discussed 10 messages ago"              │
+│   • Tried naive truncation → bad user experience                    │
+│                                                                     │
+│   What she's looking for:                                           │
+│   • Better way to manage long conversations                         │
+│   • Keep costs reasonable                                           │
+│   • Maintain conversation quality                                   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
-
-**내레이션**:
-> "Customer asks: 'When is the streaming feature shipping?'
-> 
-> Watch — the agent **dynamically attaches** the roadmap skill. It wasn't loaded before, now it is.
-> 
-> And the answer includes the **policy-safe caveat**: 'dates subject to change.' That's built into the playbook."
-
-*[세일즈 역할]*:
-> "Streaming is in beta, GA targeted for late Q1. Dates can shift — I can connect you with our PM for details."
 
 ---
 
-### 화면 7 (2:10-2:35): 세 번째 질문 — 숨겨진 우려
+## Skills 구성 (DevRel용)
 
 ```
-┌─────────────────────────────┬───────────────────────────────────────┐
-│                             │                                       │
-│  💬 TRANSCRIPT              │  🤖 COPILOT                           │
-│                             │                                       │
-│  [01:30] Customer:          │  🧠 Context Analysis                  │
-│  "That's helpful. Um...     │  ───────────────────────────────────  │
-│  [pause]                    │  • "compliance" + pause               │
-│  So compliance is kind of   │  • Fintech + flagged on-prem          │
-│  a big deal for us."        │  • Pattern: 85% ask on-prem next      │
-│                             │                                       │
-│  █████████████████████      │  🎯 Inferred: On-prem concern         │
-│                             │                                       │
-│                             │  ⚡ Using: security (pre-attached)    │
-│                             │         + roadmap (for on-prem ETA)   │
-│                             │                                       │
-│                             │  💡 Suggested Answer                  │
-│                             │  ───────────────────────────────────  │
-│                             │  "We're SOC2 Type II certified.       │
-│                             │   Hybrid arch: your data in your VPC. │
-│                             │   Full on-prem: Q2 roadmap."          │
-│                             │                                       │
-│                             │  💡 Proactive: Address before asked   │
-└─────────────────────────────┴───────────────────────────────────────┘
+skills-registry.json (Anthropic DevRel)
+┌─────────────────────────────────────────────────────────────────────┐
+│  {                                                                  │
+│    "skills": [                                                      │
+│      {                                                              │
+│        "id": "cdp_context_editing",                                 │
+│        "name": "Context Editing",                                   │
+│        "owner": "platform-docs",                                    │
+│        "description": "Managing context window, token optimization" │
+│      },                                                             │
+│      {                                                              │
+│        "id": "cdp_memory",                                          │
+│        "name": "Memory",                                            │
+│        "owner": "platform-docs",                                    │
+│        "description": "Persistent memory across conversations"      │
+│      },                                                             │
+│      {                                                              │
+│        "id": "cdp_skills",                                          │
+│        "name": "Skills",                                            │
+│        "owner": "platform-docs",                                    │
+│        "description": "Custom knowledge packages for agents"        │
+│      },                                                             │
+│      {                                                              │
+│        "id": "fintech_patterns",                                    │
+│        "name": "Fintech Customer Patterns",                         │
+│        "owner": "devrel-learnings",                                 │
+│        "description": "Common fintech use cases, objections, wins"  │
+│      },                                                             │
+│      {                                                              │
+│        "id": "pricing_guidance",                                    │
+│        "name": "Pricing & Tiers",                                   │
+│        "owner": "sales-enablement",                                 │
+│        "description": "Token pricing, tier recommendations"         │
+│      }                                                              │
+│    ]                                                                │
+│  }                                                                  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "Customer mentions compliance, pauses. The agent connects patterns — compliance plus hesitation, plus what I flagged earlier.
+---
+
+## 대화 시나리오 (상세)
+
+### 화면: Session Ready
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   Session Ready: FinBot                                             │
+│   ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│   📋 Brief                                                          │
+│   Fintech (Series B) • Head of Engineering • Technical Discovery    │
+│   Current Claude user (6 months) • Scaling issues                   │
+│                                                                     │
+│   🔮 Likely Topics                                                  │
+│   1. Context window management (95%) ← flagged: "long conversations"│
+│   2. Token cost optimization (90%)                                  │
+│   3. Memory / state persistence (75%)                               │
+│                                                                     │
+│   📦 Skills                                                         │
+│   ✅ cdp_context_editing   (pre-attached — likely needed)           │
+│   ✅ fintech_patterns      (pre-attached — fintech customer)        │
+│   ○  cdp_memory            (ready if needed)                        │
+│   ○  pricing_guidance      (ready if needed)                        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 질문 1: 애매한 문제 설명 → 맥락 유추
+
+**Transcript:**
+```
+[00:30] Sarah (Customer):
+"So yeah, we've been using Claude for about six months now, and it's 
+been great for the most part. But we're running into this... thing.
+
+Like, our users have these really long conversations — they'll ask 
+about their portfolio, then follow up with market questions, then 
+circle back to something they asked earlier.
+
+And Claude just... kind of loses track? Like, by message 15, it's 
+forgotten what we talked about in message 3. And we're burning 
+through tokens like crazy.
+
+We tried just cutting off the old messages but then users complain 
+that 'the AI doesn't remember anything.' [laughs nervously]
+
+I don't know, is there a... better way to handle this?"
+```
+
+**Copilot 분석:**
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  🧠 Context Analysis                                                │
+│  ───────────────────────────────────────────────────────────────    │
+│                                                                     │
+│  Signals detected:                                                  │
+│  • "long conversations" + "loses track" + "message 15"              │
+│  • "burning through tokens"                                         │
+│  • "tried cutting off old messages" = naive truncation              │
+│  • "doesn't remember anything" = user experience issue              │
+│                                                                     │
+│  🎯 Inferred problem:                                               │
+│  Context window management + token optimization                     │
+│  Current approach (truncation) not working                          │
+│                                                                     │
+│  ⚡ Using: cdp_context_editing (pre-attached)                       │
+│                                                                     │
+│  💡 Suggested Response                                              │
+│  ───────────────────────────────────────────────────────────────    │
+│                                                                     │
+│  "This is exactly what Context Editing is designed for.             │
+│                                                                     │
+│   Instead of naive truncation, you can:                             │
+│   1. Summarize older turns (keep meaning, reduce tokens)            │
+│   2. Extract key facts to preserve (portfolio preferences, etc.)    │
+│   3. Dynamically manage what stays in context                       │
+│                                                                     │
+│   Pattern we've seen with fintech:                                  │
+│   • Keep last 5 turns verbatim                                      │
+│   • Summarize turns 6-15                                            │
+│   • Extract persistent facts (risk tolerance, holdings)             │
+│   → 60-70% token reduction, better continuity"                      │
+│                                                                     │
+│  📄 Sources:                                                        │
+│  • cdp_context_editing/strategies.md                                │
+│  • fintech_patterns/long_conversation_handling.md                   │
+│                                                                     │
+│  💡 Follow-up to ask:                                               │
+│  "What's your average conversation length in turns?"                │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**DevRel 응답:**
+> "Ah, this is a really common challenge — actually, we just shipped something specifically for this.
 > 
-> It uses **both** security and roadmap skills to answer proactively."
+> It's called **Context Editing**. Instead of just cutting off old messages, you can intelligently manage what stays in the context window.
+> 
+> So for your case: keep the last 5 turns verbatim, summarize turns 6 through 15, and extract key facts — like the user's risk tolerance or what stocks they mentioned — as persistent context.
+> 
+> We've seen fintech companies get 60-70% token reduction without losing conversation quality.
+> 
+> Quick question: what's your average conversation length? Like, how many turns typically?"
 
-*[세일즈 역할]*:
-> "We're SOC2 Type II certified. For data residency — hybrid architecture, your sensitive data stays in your VPC. Full on-prem is Q2."
+---
 
-*[Customer]*:
-> "Oh, that's exactly what I was going to ask."
+### 질문 2: 구체적 기술 질문 + 숨겨진 우려
 
-**내레이션**:
-> "Answered before they asked. That's context-aware playbook activation."
+**Transcript:**
+```
+[02:00] Sarah:
+"Oh wow, that's interesting. So it's like... programmable summarization?
+
+Average is probably 15-20 turns, but power users go way longer.
+Like 40, 50 messages.
+
+[pause]
+
+Um, one thing though — we're in fintech, so there's compliance stuff.
+Like, we can't just... lose information? If a user said 'don't invest 
+in oil companies' in message 3, and we summarize that away, and then 
+Claude recommends Exxon in message 30... that's a problem.
+
+[nervous laugh]
+
+Our compliance team would kill me."
+```
+
+**Copilot 분석:**
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  🧠 Context Analysis                                                │
+│  ───────────────────────────────────────────────────────────────    │
+│                                                                     │
+│  Signals:                                                           │
+│  • "programmable summarization" = understanding the feature         │
+│  • "40, 50 messages" = heavy usage, token costs significant         │
+│  • [pause] + "compliance stuff" + "can't lose information"          │
+│  • "compliance team would kill me" = real blocker                   │
+│                                                                     │
+│  ⚠️ Pattern matched! (fintech_patterns)                             │
+│  "Compliance concern + data loss fear"                              │
+│  85% of fintech customers raise this                                │
+│                                                                     │
+│  🎯 Hidden concern:                                                 │
+│  Not just token cost — compliance risk of losing user preferences   │
+│                                                                     │
+│  ⚡ Using:                                                          │
+│  • cdp_context_editing (attached)                                   │
+│  • fintech_patterns (compliance handling)                           │
+│                                                                     │
+│  💡 Suggested Response                                              │
+│  ───────────────────────────────────────────────────────────────    │
+│                                                                     │
+│  "This is the exact concern we hear from every fintech customer.    │
+│   Here's how Context Editing handles it:                            │
+│                                                                     │
+│   You define what MUST be preserved — 'user constraints' bucket:    │
+│   • 'no oil companies' → extracted, never summarized away           │
+│   • Risk tolerance, restricted securities, preferences              │
+│                                                                     │
+│   These go into a 'persistent facts' section that always stays.     │
+│   Only the conversational fluff gets summarized.                    │
+│                                                                     │
+│   Pattern from similar fintech (Acme Wealth):                       │
+│   • They tag compliance-critical statements                         │
+│   • Those get extracted to persistent context automatically         │
+│   • Passed their SOC2 audit with this approach"                     │
+│                                                                     │
+│  📄 Sources:                                                        │
+│  • cdp_context_editing/persistent_facts.md                          │
+│  • fintech_patterns/compliance_handling.md                          │
+│  • case_studies/acme_wealth.md                                      │
+│                                                                     │
+│  💡 Proactive: Address compliance before she asks directly          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**DevRel 응답:**
+> "This is the exact concern we hear from every fintech customer. You're not alone.
+> 
+> Here's how Context Editing handles it: you define what **must** be preserved. We call it the 'persistent facts' bucket.
+> 
+> So 'don't invest in oil companies' — that gets **extracted**, not summarized. It stays in context permanently until the user changes it. Risk tolerance, restricted securities, any compliance-critical preferences — same thing.
+> 
+> Only the conversational parts get compressed. 'How was your weekend?' — that can be summarized. 'Never recommend fossil fuels' — that's sacred.
+> 
+> Actually, we have another fintech customer — Acme Wealth — who implemented exactly this pattern. They tag compliance-critical statements, extract them automatically, and they **passed their SOC2 audit** with this approach.
+> 
+> Would it help if I connected you with their engineering lead?"
+
+---
+
+### 질문 3 (Optional): 직접 Ask Copilot
+
+**DevRel types in Ask Copilot:**
+```
+"What's the token cost comparison for a 50-turn conversation 
+with vs without context editing?"
+```
+
+**Copilot Response:**
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  💡 Token Cost Comparison                                           │
+│  ───────────────────────────────────────────────────────────────    │
+│                                                                     │
+│  50-turn conversation (avg 200 tokens/turn):                        │
+│                                                                     │
+│  WITHOUT Context Editing:                                           │
+│  • Turn 50 context: ~10,000 tokens (full history)                   │
+│  • Total API calls: ~250,000 tokens (cumulative)                    │
+│  • Estimated cost: $7.50 (at Sonnet pricing)                        │
+│                                                                     │
+│  WITH Context Editing:                                              │
+│  • Turn 50 context: ~3,000 tokens (summarized + persistent)         │
+│  • Total API calls: ~85,000 tokens                                  │
+│  • Estimated cost: $2.55                                            │
+│  • Savings: ~66%                                                    │
+│                                                                     │
+│  ⚠️ Note: Actual savings vary by conversation type.                 │
+│  Financial conversations with many numbers may compress less.       │
+│                                                                     │
+│  📄 Source: pricing_guidance/context_editing_roi.md                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**DevRel:**
+> "Just pulled the numbers. For a 50-turn conversation, you're looking at roughly 66% token savings. That's $7.50 down to $2.55 per conversation at Sonnet pricing.
+> 
+> For 50,000 monthly active users with, let's say, 10 conversations each — that's real money."
+
+---
+
+## Post-call: META-SKILL 학습
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   META-SKILL: Suggested Updates                                     │
+│   ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│   📝 Update 1: fintech_patterns/compliance_handling.md              │
+│   ┌─────────────────────────────────────────────────────────────┐   │
+│   │  + "Compliance concern always comes with nervous laugh"     │   │
+│   │  + Phrase "compliance team would kill me" = serious blocker │   │
+│   │  + Lead with SOC2 audit success story (Acme Wealth)         │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+│   [Review] [Approve]                                                │
+│                                                                     │
+│   📝 Update 2: cdp_context_editing/use_cases.md                     │
+│   ┌─────────────────────────────────────────────────────────────┐   │
+│   │  + Fintech: 40-50 turn conversations common for power users │   │
+│   │  + Key requirement: compliance-critical fact preservation   │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+│   [Review] [Approve]                                                │
+│                                                                     │
+│   📝 Signal to Product: cdp_memory                                  │
+│   ┌─────────────────────────────────────────────────────────────┐   │
+│   │  Customer showed interest in cross-conversation persistence │   │
+│   │  "What if user comes back tomorrow?"                        │   │
+│   │  → Memory feature may be natural upsell                     │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+│   [Flag to Product]                                                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 

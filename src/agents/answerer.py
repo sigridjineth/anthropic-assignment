@@ -11,35 +11,45 @@ See: https://platform.claude.com/docs/en/build-with-claude/skills-guide
 """
 
 import anthropic
-from ..config import get_settings
+from ..config import get_settings, PERSONA_SYSTEM_CONTEXT
 from ..models import AnswerDraft, Source, SkillDomain
 from ..services.skills import skill_manager, BETAS
 
-# Base system prompt
-BASE_SYSTEM_PROMPT = """You are a Technical Sales assistant helping answer customer questions during a sales call.
+# Base system prompt with persona
+BASE_SYSTEM_PROMPT = f"""{PERSONA_SYSTEM_CONTEXT}
+
+---
+
+You are helping Sigrid answer customer questions during a discovery call.
 
 Instructions:
 1. Use the knowledge from your Skills to provide accurate answers
 2. Cite sources when available (mention which skill/file the info comes from)
-3. Include appropriate caveats (e.g., "timelines subject to change")
-4. Suggest follow-up questions the sales rep could ask
-5. If unsure, say so clearly
+3. Include appropriate caveats (e.g., "actual savings vary")
+4. Suggest follow-up questions Sigrid could ask the customer
+5. Be specific - use numbers, percentages, and concrete examples
+6. If unsure, say so clearly
 
 Use the generate_answer tool to provide your response."""
 
 # System prompt with injected skills
-SYSTEM_PROMPT_WITH_SKILLS = """You are a Technical Sales assistant helping answer customer questions during a sales call.
+SYSTEM_PROMPT_WITH_SKILLS = f"""{PERSONA_SYSTEM_CONTEXT}
+
+---
+
+You are helping Sigrid answer customer questions during a discovery call.
 
 You have access to the following specialized knowledge:
 
-{skills_content}
+{{skills_content}}
 
 Instructions:
 1. Use the knowledge above to provide accurate answers
 2. Cite sources when available (mention which skill/file the info comes from)
-3. Include appropriate caveats (e.g., "timelines subject to change")
-4. Suggest follow-up questions the sales rep could ask
-5. If unsure, say so clearly
+3. Include appropriate caveats (e.g., "actual savings vary")
+4. Suggest follow-up questions Sigrid could ask the customer
+5. Be specific - use numbers, percentages, and concrete examples
+6. If unsure, say so clearly
 
 Use the generate_answer tool to provide your response."""
 

@@ -6,25 +6,30 @@ See: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 """
 
 import anthropic
-from ..config import get_settings
+from ..config import get_settings, PERSONA_SYSTEM_CONTEXT
 from ..models import PrepInput, PrepResult, LikelyTopic
 
-SYSTEM_PROMPT = """You are a Technical Sales preparation assistant. The user will describe an upcoming sales call in natural language.
+SYSTEM_PROMPT = f"""{PERSONA_SYSTEM_CONTEXT}
+
+---
+
+You are helping Sigrid prepare for a customer discovery call. The user will describe the upcoming call in natural language.
 
 Your job is to:
-1. Understand the context from whatever they provide (company, industry, roles, concerns, etc.)
-2. Generate a session brief to help them prepare
+1. Understand the customer context (company, industry, roles, pain points)
+2. Generate a session brief to help Sigrid prepare
 
 Available skill domains (recommend what's relevant):
-- roadmap: Product timelines, feature availability, release dates
-- architecture: System design, data flow, technical implementation
-- security: SOC2, compliance, encryption, data handling
-- pricing: Plans, costs, enterprise options
+- cdp_context_editing: Context window management, token optimization, summarization
+- cdp_memory: Cross-conversation persistence, user state management
+- cdp_skills: Custom knowledge packages for agents
+- fintech_patterns: Fintech use cases, compliance handling, case studies
+- pricing_guidance: Token pricing, tier recommendations, ROI calculations
 
 Guidelines:
-- Infer company type, industry, and concerns from the user's description
+- Infer company type, industry, and concerns from the description
 - Predict 3 likely topics they'll discuss (with confidence 0.0-1.0)
-- Generate 3-5 discovery questions the sales rep should ask
+- Generate 3-5 discovery questions Sigrid should ask
 - Recommend 2-4 skills to pre-attach based on inferred topics
 - Be concise and actionable
 
@@ -63,7 +68,7 @@ PREP_TOOL = {
                 "type": "array",
                 "items": {
                     "type": "string",
-                    "enum": ["roadmap", "architecture", "security", "pricing"]
+                    "enum": ["cdp_context_editing", "cdp_memory", "cdp_skills", "fintech_patterns", "pricing_guidance"]
                 },
                 "description": "2-4 skill domains to pre-attach"
             }

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Sales Copilot - Session: {{ company }}{% endblock %}
+{% block title %}Interview Copilot - Session: {{ company }}{% endblock %}
 
 {% block content %}
 <div class="session-container" x-data="sessionApp('{{ session_id }}')">
@@ -8,14 +8,10 @@
     <header class="header">
         <div class="header-left">
             <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Sales Copilot</span>
+                <div class="header-persona-avatar">S</div>
+                <span>Sigrid</span>
             </div>
-            <span class="session-name">Session: {{ company }}</span>
+            <span class="session-name">| {{ company }}</span>
         </div>
         <a href="/" class="btn-secondary">End Call</a>
     </header>
@@ -32,9 +28,8 @@
             <div class="add-entry-form">
                 <div class="form-row">
                     <select x-model="newEntry.speaker" class="speaker-select">
-                        <option value="prospect">Prospect</option>
-                        <option value="sales">Sales</option>
-                        <option value="se">SE</option>
+                        <option value="customer">Customer</option>
+                        <option value="sigrid">Sigrid</option>
                     </select>
                 </div>
                 <textarea
