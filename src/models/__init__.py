@@ -2,6 +2,7 @@ from .transcript import TranscriptEntry, Speaker
 from .router import RouterDecision, SkillSuggestion, SkillDomain, Urgency
 from .answerer import AnswerDraft, Source, EscalationAction
 from .summarizer import SummarizerState, CustomerProfile, KeyMoment, PredictedQuestion
+from .events import SkillFiredEvent
 
 __all__ = [
     "TranscriptEntry",
@@ -17,4 +18,5 @@ __all__ = [
     "CustomerProfile",
     "KeyMoment",
     "PredictedQuestion",
+    "SkillFiredEvent",
 ]

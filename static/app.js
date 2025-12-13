@@ -5,6 +5,8 @@ function copilotApp() {
         routerDecision: null,
         answerDraft: null,
         activeSkills: [],
+        skillFiredLog: [],
+        summarizerState: null,
         askQuestion: '',
         loading: false,
         simulating: false,
@@ -24,6 +26,8 @@ function copilotApp() {
                 this.routerDecision = null;
                 this.answerDraft = null;
                 this.activeSkills = [];
+                this.skillFiredLog = [];
+                this.summarizerState = null;
             } catch (err) {
                 console.error('Failed to create session:', err);
             }
@@ -72,6 +76,8 @@ function copilotApp() {
                 this.routerDecision = data.router_decision;
                 this.answerDraft = data.answer_draft;
                 this.activeSkills = data.active_skills || [];
+                this.skillFiredLog = data.skill_fired_log || [];
+                this.summarizerState = data.summarizer_state;
             } catch (err) {
                 console.error('Failed to refresh state:', err);
             }

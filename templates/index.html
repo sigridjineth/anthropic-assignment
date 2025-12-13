@@ -37,18 +37,68 @@
         <section class="panel copilot-panel">
             <h2>🤖 Copilot</h2>
 
-            <!-- Router Decision -->
-            <div class="copilot-section" x-show="routerDecision && routerDecision.needs_skill">
-                <h3>⚡ Skill Detection</h3>
-                <div class="router-decision">
-                    <div class="urgency-badge" :class="'urgency-' + routerDecision?.urgency" x-text="routerDecision?.urgency"></div>
-                    <p class="trigger-reason" x-text="routerDecision?.trigger_reason"></p>
-                    <div class="suggested-skills">
-                        <template x-for="skill in routerDecision?.suggested_skills || []" :key="skill.domain">
-                            <span class="skill-badge" x-text="skill.domain + ' (' + (skill.confidence * 100).toFixed(0) + '%)'"></span>
-                        </template>
-                    </div>
+            <!-- Skill Fired Log -->
+            <div class="copilot-section" x-show="skillFiredLog.length > 0">
+                <h3>⚡ Skill Fired Log</h3>
+                <div class="skill-fired-log">
+                    <template x-for="event in skillFiredLog.slice(-5).reverse()" :key="event.timestamp">
+                        <div class="skill-fired-event" :class="'urgency-' + event.urgency">
+                            <div class="event-header">
+                                <span class="event-domains">
+                                    <template x-for="d in event.domains" :key="d">
+                                        <span class="skill-badge fired" x-text="d"></span>
+                                    </template>
+                                </span>
+                                <span class="event-confidence" x-text="(event.confidence * 100).toFixed(0) + '%'"></span>
+                            </div>
+                            <p class="event-reason" x-text="event.trigger_reason"></p>
+                            <p class="event-question" x-show="event.detected_question" x-text="'Q: ' + event.detected_question"></p>
+                        </div>
+                    </template>
                 </div>
+            </div>
+
+            <!-- Live Summary -->
+            <div class="copilot-section" x-show="summarizerState?.summary_text">
+                <h3>📋 Live Summary</h3>
+                <p class="summary-text" x-text="summarizerState?.summary_text"></p>
+            </div>
+
+            <!-- Key Moments -->
+            <div class="copilot-section" x-show="summarizerState?.key_moments?.length > 0">
+                <h3>🎯 Key Moments</h3>
+                <div class="key-moments">
+                    <template x-for="moment in summarizerState?.key_moments || []" :key="moment.quote">
+                        <div class="key-moment" :class="'importance-' + moment.importance">
+                            <blockquote x-text="'\"' + moment.quote + '\"'"></blockquote>
+                            <p class="moment-reason" x-text="moment.why_important"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Predicted Questions -->
+            <div class="copilot-section" x-show="summarizerState?.predicted_questions?.length > 0">
+                <h3>🔮 Predicted Questions</h3>
+                <div class="predicted-questions">
+                    <template x-for="pq in summarizerState?.predicted_questions || []" :key="pq.question">
+                        <div class="predicted-question">
+                            <span class="pq-text" x-text="pq.question"></span>
+                            <span class="pq-prob" x-text="(pq.probability * 100).toFixed(0) + '%'"></span>
+                            <span class="skill-badge" x-text="pq.domain"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Suggested Asks -->
+            <div class="copilot-section" x-show="summarizerState?.suggested_asks?.length > 0">
+                <h3>💬 Suggested Discovery Questions</h3>
+                <ul class="suggested-asks">
+                    <template x-for="ask in summarizerState?.suggested_asks || []" :key="ask">
+                        <li x-text="ask"></li>
+                    </template>
+                </ul>
             </div>
 
             <!-- Active Skills -->

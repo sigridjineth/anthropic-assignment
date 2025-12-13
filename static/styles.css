@@ -241,9 +241,174 @@ body {
     color: white;
 }
 
+.skill-badge.fired {
+    background: #f59e0b;
+    color: white;
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
 .no-skills {
     color: #666;
     font-size: 0.875rem;
+}
+
+/* Skill Fired Log */
+.skill-fired-log {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.skill-fired-event {
+    background: #252525;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid #f59e0b;
+}
+
+.skill-fired-event.urgency-high {
+    border-left-color: #ef4444;
+}
+
+.skill-fired-event.urgency-medium {
+    border-left-color: #f59e0b;
+}
+
+.skill-fired-event.urgency-low {
+    border-left-color: #6b7280;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.event-domains {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.event-confidence {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.event-reason {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-bottom: 0.25rem;
+}
+
+.event-question {
+    font-size: 0.875rem;
+    color: #e0e0e0;
+    font-style: italic;
+}
+
+/* Live Summary */
+.summary-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #e0e0e0;
+    background: #252525;
+    padding: 0.75rem;
+    border-radius: 8px;
+}
+
+/* Key Moments */
+.key-moments {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.key-moment {
+    background: #252525;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid #6b7280;
+}
+
+.key-moment.importance-high {
+    border-left-color: #ef4444;
+}
+
+.key-moment.importance-medium {
+    border-left-color: #f59e0b;
+}
+
+.key-moment.importance-low {
+    border-left-color: #6b7280;
+}
+
+.key-moment blockquote {
+    font-style: italic;
+    color: #e0e0e0;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.moment-reason {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* Predicted Questions */
+.predicted-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.predicted-question {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #252525;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+}
+
+.pq-text {
+    flex: 1;
+    font-size: 0.875rem;
+}
+
+.pq-prob {
+    font-size: 0.75rem;
+    color: #888;
+    min-width: 35px;
+    text-align: right;
+}
+
+/* Suggested Asks */
+.suggested-asks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.suggested-asks li {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    background: #252525;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.suggested-asks li:hover {
+    background: #333;
 }
 
 /* Answer Card */

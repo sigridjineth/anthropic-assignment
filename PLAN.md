@@ -40,18 +40,18 @@
 - [x] Frontend UI (transcript panel, copilot panel, ask input)
 - [x] Demo scenario (fintech_discovery.json)
 
-### Day 2: Agents & Robustness 🔄 IN PROGRESS
-- [ ] Router cooldown (20s per domain)
-- [ ] Skill Fired event log (historical, not just current)
-- [ ] Summarizer agent (live summary, key moments, predicted questions)
-- [ ] Mock fallback data for API failures
-- [ ] Raw JSON view for parse failures
+### Day 2: Agents & Robustness ✅ COMPLETE
+- [x] Router cooldown (20s per domain)
+- [x] Skill Fired event log (historical, not just current)
+- [x] Summarizer agent (live summary, key moments, predicted questions)
+- [x] Mock fallback data for API failures
+- [x] case_studies skill content
 
 ### Day 3: META-SKILL & Polish
 - [ ] META-SKILL (Update Proposal Generator)
-- [ ] case_studies skill content
-- [ ] Suggested Asks (discovery questions for sales)
+- [ ] Raw JSON view for parse failures
 - [ ] Error replay / graceful degradation
+- [ ] UI polish (animations, transitions)
 
 ### Day 4: Testing & Demo Prep
 - [ ] Unit tests (Router, Answerer, Orchestrator)
@@ -66,11 +66,11 @@
 | # | Task | Status |
 |---|------|--------|
 | 1 | Transcript simulation + UI skeleton | ✅ Done |
-| 2 | Router agent (periodic) + Skill Fired UI | ⚠️ Partial |
+| 2 | Router agent (periodic) + Skill Fired UI | ✅ Done |
 | 3 | Answerer (dynamic skills attach) + Suggested Answer card | ✅ Done |
 | 4 | Ask Copilot input → Answerer | ✅ Done |
 | 5 | Without/With comparison mode | ✅ Done |
-| 6 | Summarizer (요약/예측 질문) | ❌ Not done |
+| 6 | Summarizer (요약/예측 질문) | ✅ Done |
 | 7 | META-SKILL (case note + diff/PR draft) | ❌ Not done |
 
 ---
@@ -277,13 +277,150 @@ Triggers: security (deep), deployment, compliance
 
 ---
 
-## Day 2 Tasks (Priority Order)
+## Day 2 Implementation Details
 
-1. **Router cooldown** - Add 20s per-domain cooldown
-2. **Skill Fired event log** - Store and display history
-3. **Summarizer agent** - Implement incremental summarization
-4. **Mock fallback** - Create mock response data
-5. **case_studies content** - Add fintech_beta_bank.md
+### 2.1 Router Cooldown (20s per domain)
+
+**Problem**: Router can fire same skill multiple times in quick succession, causing UI thrashing.
+
+**Solution**:
+```python
+# In Orchestrator
+last_skill_fire: dict[str, float] = {}  # domain -> timestamp
+COOLDOWN_SEC = 20.0
+
+def should_fire_skill(domain: str) -> bool:
+    now = time.time()
+    if domain in last_skill_fire:
+        if now - last_skill_fire[domain] < COOLDOWN_SEC:
+            return False
+    last_skill_fire[domain] = now
+    return True
+```
+
+**Files to modify**:
+- `src/services/orchestrator.py` - Add cooldown tracking
+
+---
+
+### 2.2 Skill Fired Event Log
+
+**Problem**: No historical record of skill activations, only current state.
+
+**Solution**:
+```python
+# New model in src/models/events.py
+class SkillFiredEvent(BaseModel):
+    timestamp: float
+    domains: list[str]
+    trigger_reason: str
+    confidence: float
+    detected_question: str | None
+    urgency: str
+
+# In Orchestrator
+skill_fired_log: list[SkillFiredEvent] = []
+```
+
+**Files to create/modify**:
+- `src/models/events.py` (NEW) - SkillFiredEvent model
+- `src/services/orchestrator.py` - Store events in log
+- `src/api/routes.py` - Add GET `/api/session/{id}/events` endpoint
+- Update CopilotState to include `skill_fired_log`
+
+---
+
+### 2.3 Summarizer Agent
+
+**Problem**: No live context extraction from conversation.
+
+**Solution**:
+```python
+# New agent: src/agents/summarizer.py
+class SummarizerAgent:
+    async def summarize(
+        self,
+        previous_state: SummarizerState | None,
+        recent_transcript: str,
+        full_transcript: str
+    ) -> SummarizerState:
+        # LLM call to extract:
+        # - customer_profile
+        # - goals, constraints
+        # - key_moments
+        # - predicted_questions
+        # - suggested_asks
+```
+
+**Trigger Logic**:
+- Every 45-60 seconds of new transcript
+- OR when topic shift detected by Router
+
+**Files to create/modify**:
+- `src/agents/summarizer.py` (NEW) - SummarizerAgent class
+- `src/agents/__init__.py` - Export new agent
+- `src/services/orchestrator.py` - Integrate Summarizer
+- `src/api/routes.py` - Include summarizer_state in CopilotState
+
+---
+
+### 2.4 Mock Fallback Data
+
+**Problem**: Demo breaks when API fails.
+
+**Solution**:
+```python
+# New file: src/fallback.py
+MOCK_ROUTER_DECISIONS = {
+    "roadmap": RouterDecision(needs_skill=True, ...),
+    "architecture": RouterDecision(needs_skill=True, ...),
+}
+
+MOCK_ANSWERS = {
+    "roadmap": AnswerDraft(answer="Based on our current roadmap...", ...),
+    "architecture": AnswerDraft(answer="Our architecture uses...", ...),
+}
+```
+
+**Integration**:
+- Wrap API calls in try/except
+- On exception, lookup mock data by detected domain
+- Log warning: "Using fallback data"
+
+**Files to create/modify**:
+- `src/fallback.py` (NEW) - Mock data definitions
+- `src/agents/router.py` - Fallback on API error
+- `src/agents/answerer.py` - Fallback on API error
+
+---
+
+### 2.5 case_studies Skill Content
+
+**Problem**: case_studies skill is referenced but content is minimal.
+
+**Solution**: Create rich content for fintech case study.
+
+**Files to create**:
+- `skills/case_studies/SKILL.md` - Enhanced skill definition
+- `skills/case_studies/references/fintech_beta_bank.md` - Detailed case study
+- `skills/case_studies/references/healthcare_pilot.md` - Second example
+
+---
+
+### 2.6 Day 2 Tasks Checklist
+
+| # | Task | File(s) | Status |
+|---|------|---------|--------|
+| 1 | Router cooldown | orchestrator.py | ✅ |
+| 2 | SkillFiredEvent model | models/events.py | ✅ |
+| 3 | Event log storage | orchestrator.py | ✅ |
+| 4 | Events API endpoint | api/routes.py | ✅ |
+| 5 | SummarizerAgent | agents/summarizer.py | ✅ |
+| 6 | Summarizer integration | orchestrator.py | ✅ |
+| 7 | Mock fallback data | fallback.py | ✅ |
+| 8 | Fallback integration | router.py, answerer.py | ✅ |
+| 9 | case_studies content | skills/case_studies/ | ✅ |
+| 10 | Frontend updates | templates/, static/ | ✅ |
 
 ---
 
@@ -316,8 +453,8 @@ Triggers: security (deep), deployment, compliance
 | `/api/session/{id}/compare` | POST | With/Without | ✅ |
 | `/api/session/{id}/simulation/start` | POST | Start demo | ✅ |
 | `/api/session/{id}/simulation/step` | POST | Next entry | ✅ |
+| `/api/session/{id}/events` | GET | Skill fired log | ✅ |
 | `/api/session/{id}/end-call` | POST | Trigger META | ❌ |
-| `/api/session/{id}/events` | GET | Skill fired log | ❌ |
 
 ---
 
@@ -326,10 +463,10 @@ Triggers: security (deep), deployment, compliance
 1. ✅ Demo plays simulated transcript with skill activation
 2. ✅ Ask Copilot returns skill-enhanced answers
 3. ✅ Without/With comparison shows clear difference
-4. ⚠️ Skill Fired log shows activation history
-5. ❌ Summarizer provides live context
+4. ✅ Skill Fired log shows activation history
+5. ✅ Summarizer provides live context
 6. ❌ META-SKILL generates post-call proposals
-7. ⚠️ Graceful fallback on errors
+7. ✅ Graceful fallback on errors
 
 ---
 

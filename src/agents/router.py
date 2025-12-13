@@ -186,7 +186,9 @@ class RouterAgent:
                     detected_question=data.get("detected_question"),
                 )
         except Exception:
-            pass
+            # Use mock fallback on API failure
+            from ..fallback import get_mock_router_decision
+            return get_mock_router_decision(transcript_text)
 
         # Default: no skill needed
         return RouterDecision(needs_skill=False)

@@ -1,6 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from ..models import TranscriptEntry, Speaker, AnswerDraft, RouterDecision
+from ..models import (
+    TranscriptEntry,
+    Speaker,
+    AnswerDraft,
+    RouterDecision,
+    SummarizerState,
+    SkillFiredEvent,
+)
 from ..services.orchestrator import Orchestrator
 from ..services.transcript import TranscriptStore
 from ..services.simulation import SimulationEngine
@@ -44,6 +51,8 @@ class CopilotState(BaseModel):
     router_decision: RouterDecision | None
     answer_draft: AnswerDraft | None
     active_skills: list[str]
+    skill_fired_log: list[SkillFiredEvent] = []
+    summarizer_state: SummarizerState | None = None
 
 
 @router.post("/session", response_model=CreateSessionResponse)
@@ -92,7 +101,20 @@ async def get_state(session_id: str):
         router_decision=orchestrator.last_router_decision,
         answer_draft=orchestrator.last_answer,
         active_skills=orchestrator.active_skills,
+        skill_fired_log=orchestrator.skill_fired_log,
+        summarizer_state=orchestrator.summarizer_state,
     )
+
+
+@router.get("/session/{session_id}/events", response_model=list[SkillFiredEvent])
+async def get_events(session_id: str):
+    """Get skill fired event log for the session."""
+    if session_id not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    session = sessions[session_id]
+    orchestrator: Orchestrator = session["orchestrator"]
+    return orchestrator.skill_fired_log
 
 
 @router.post("/session/{session_id}/ask", response_model=AnswerDraft)
