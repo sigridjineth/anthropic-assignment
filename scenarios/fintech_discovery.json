@@ -1,0 +1,77 @@
+{
+  "name": "Fintech Discovery Call",
+  "description": "Demo scenario showing roadmap, architecture, and security skill triggers",
+  "customer": {
+    "company": "Beta Bank",
+    "industry": "fintech",
+    "size": "500 employees",
+    "geo": "US"
+  },
+  "entries": [
+    {
+      "offset_sec": 0,
+      "speaker": "sales",
+      "text": "Thanks for joining today. I'm excited to learn more about Beta Bank's document processing needs. Can you tell me about your current challenges?"
+    },
+    {
+      "offset_sec": 15,
+      "speaker": "prospect",
+      "text": "Sure. We process about 50,000 loan applications per month, and right now it's mostly manual. We need to extract data from various documents - pay stubs, tax returns, bank statements."
+    },
+    {
+      "offset_sec": 35,
+      "speaker": "sales",
+      "text": "That's a significant volume. Are you looking at any specific timeline for implementing a solution?"
+    },
+    {
+      "offset_sec": 45,
+      "speaker": "prospect",
+      "text": "We're hoping to have something in production by Q2. Speaking of which, I saw you have a table extraction feature in beta. When will that be generally available?"
+    },
+    {
+      "offset_sec": 65,
+      "speaker": "sales",
+      "text": "Great question about the timeline. Let me check on that for you."
+    },
+    {
+      "offset_sec": 75,
+      "speaker": "prospect",
+      "text": "Also, I'm curious - how does your processing pipeline actually work? Like, what happens when we submit a document?"
+    },
+    {
+      "offset_sec": 95,
+      "speaker": "sales",
+      "text": "Happy to walk you through the architecture."
+    },
+    {
+      "offset_sec": 105,
+      "speaker": "prospect",
+      "text": "And one more thing - since we're in financial services, compliance is critical. Are you SOC 2 certified? What about HIPAA?"
+    },
+    {
+      "offset_sec": 125,
+      "speaker": "sales",
+      "text": "Absolutely, security and compliance are top priorities for us."
+    },
+    {
+      "offset_sec": 135,
+      "speaker": "prospect",
+      "text": "What are your pricing tiers? We'd be processing around 50,000 documents monthly."
+    },
+    {
+      "offset_sec": 150,
+      "speaker": "sales",
+      "text": "With that volume, I'd recommend looking at our Business or Enterprise tiers."
+    },
+    {
+      "offset_sec": 165,
+      "speaker": "prospect",
+      "text": "Do you have any customers in the banking space we could talk to as a reference?"
+    },
+    {
+      "offset_sec": 180,
+      "speaker": "sales",
+      "text": "Yes, we have several fintech and banking customers. Let me get you some information."
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Technical Sales Interview Copilot{% endblock %}
+
+{% block content %}
+<div class="app-container" x-data="copilotApp()">
+    <!-- Header -->
+    <header class="header">
+        <h1>🎙️ Sales Interview Copilot</h1>
+        <div class="header-controls">
+            <span class="session-id" x-show="sessionId">Session: <code x-text="sessionId"></code></span>
+            <button @click="createSession()" class="btn btn-primary" x-show="!sessionId">Start Session</button>
+            <button @click="startSimulation()" class="btn btn-secondary" x-show="sessionId && !simulating">▶️ Play Demo</button>
+            <button @click="stepSimulation()" class="btn btn-secondary" x-show="sessionId && simulating">⏭️ Next</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Left: Transcript Panel -->
+        <section class="panel transcript-panel">
+            <h2>📝 Transcript</h2>
+            <div class="transcript-stream" id="transcript-stream">
+                <template x-for="entry in transcript" :key="entry.id">
+                    <div class="transcript-entry" :class="'speaker-' + entry.speaker">
+                        <span class="speaker-badge" x-text="entry.speaker"></span>
+                        <span class="entry-text" x-text="entry.text"></span>
+                        <span class="entry-time" x-text="formatTime(entry.offset_sec)"></span>
+                    </div>
+                </template>
+                <div x-show="transcript.length === 0" class="empty-state">
+                    Start a session and play the demo to see the transcript.
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Copilot Panel -->
+        <section class="panel copilot-panel">
+            <h2>🤖 Copilot</h2>
+
+            <!-- Router Decision -->
+            <div class="copilot-section" x-show="routerDecision && routerDecision.needs_skill">
+                <h3>⚡ Skill Detection</h3>
+                <div class="router-decision">
+                    <div class="urgency-badge" :class="'urgency-' + routerDecision?.urgency" x-text="routerDecision?.urgency"></div>
+                    <p class="trigger-reason" x-text="routerDecision?.trigger_reason"></p>
+                    <div class="suggested-skills">
+                        <template x-for="skill in routerDecision?.suggested_skills || []" :key="skill.domain">
+                            <span class="skill-badge" x-text="skill.domain + ' (' + (skill.confidence * 100).toFixed(0) + '%)'"></span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Skills -->
+            <div class="copilot-section">
+                <h3>🔧 Active Skills</h3>
+                <div class="active-skills">
+                    <template x-for="skill in activeSkills" :key="skill">
+                        <span class="skill-badge active" x-text="skill"></span>
+                    </template>
+                    <span x-show="activeSkills.length === 0" class="no-skills">None active</span>
+                </div>
+            </div>
+
+            <!-- Answer Draft -->
+            <div class="copilot-section" x-show="answerDraft">
+                <h3>💡 Suggested Answer</h3>
+                <div class="answer-card">
+                    <p class="answer-text" x-text="answerDraft?.answer"></p>
+                    <div class="answer-meta">
+                        <span class="confidence" x-text="'Confidence: ' + ((answerDraft?.confidence || 0) * 100).toFixed(0) + '%'"></span>
+                        <template x-for="skill in answerDraft?.skills_used || []" :key="skill">
+                            <span class="skill-used" x-text="skill"></span>
+                        </template>
+                    </div>
+                    <div class="caveats" x-show="answerDraft?.caveats?.length">
+                        <strong>Caveats:</strong>
+                        <ul>
+                            <template x-for="caveat in answerDraft?.caveats || []" :key="caveat">
+                                <li x-text="caveat"></li>
+                            </template>
+                        </ul>
+                    </div>
+                    <div class="followups" x-show="answerDraft?.followups?.length">
+                        <strong>Follow-up questions:</strong>
+                        <ul>
+                            <template x-for="q in answerDraft?.followups || []" :key="q">
+                                <li x-text="q"></li>
+                            </template>
+                        </ul>
+                    </div>
+                    <div class="sources" x-show="answerDraft?.sources?.length">
+                        <strong>Sources:</strong>
+                        <template x-for="src in answerDraft?.sources || []" :key="src.file">
+                            <span class="source-badge" x-text="src.title || src.file"></span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compare Toggle -->
+            <div class="copilot-section">
+                <h3>🔄 Compare Mode</h3>
+                <label class="toggle">
+                    <input type="checkbox" x-model="compareMode">
+                    <span>Show Without Skills vs With Skills</span>
+                </label>
+                <div x-show="compareMode && compareResult" class="compare-results">
+                    <div class="compare-column">
+                        <h4>❌ Without Skills</h4>
+                        <p x-text="compareResult?.without_skills?.answer"></p>
+                        <span class="confidence" x-text="'Confidence: ' + ((compareResult?.without_skills?.confidence || 0) * 100).toFixed(0) + '%'"></span>
+                    </div>
+                    <div class="compare-column">
+                        <h4>✅ With Skills</h4>
+                        <p x-text="compareResult?.with_skills?.answer"></p>
+                        <span class="confidence" x-text="'Confidence: ' + ((compareResult?.with_skills?.confidence || 0) * 100).toFixed(0) + '%'"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom: Ask Copilot -->
+    <footer class="ask-panel">
+        <div class="ask-input-container">
+            <input
+                type="text"
+                x-model="askQuestion"
+                placeholder="Ask the copilot anything..."
+                @keydown.enter="submitQuestion()"
+                :disabled="!sessionId || loading"
+            >
+            <button @click="submitQuestion()" :disabled="!sessionId || loading || !askQuestion" class="btn btn-primary">
+                <span x-show="!loading">Ask</span>
+                <span x-show="loading">...</span>
+            </button>
+            <button @click="runCompare()" :disabled="!sessionId || loading || !askQuestion" class="btn btn-secondary" x-show="compareMode">
+                Compare
+            </button>
+        </div>
+    </footer>
+</div>
+{% endblock %}

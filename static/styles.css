@@ -1,0 +1,391 @@
+/* Reset and Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: #0f0f0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+}
+
+/* App Container */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.header-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.session-id {
+    color: #888;
+    font-size: 0.875rem;
+}
+
+.session-id code {
+    background: #333;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #6366f1;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #4f46e5;
+}
+
+.btn-secondary {
+    background: #333;
+    color: #e0e0e0;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #444;
+}
+
+/* Main Content */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Panels */
+.panel {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.panel h2 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+/* Transcript Panel */
+.transcript-stream {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.transcript-entry {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.75rem;
+    background: #252525;
+    border-radius: 8px;
+}
+
+.speaker-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    min-width: 70px;
+    text-align: center;
+}
+
+.speaker-prospect .speaker-badge {
+    background: #3b82f6;
+    color: white;
+}
+
+.speaker-sales .speaker-badge {
+    background: #10b981;
+    color: white;
+}
+
+.speaker-se .speaker-badge {
+    background: #f59e0b;
+    color: white;
+}
+
+.entry-text {
+    flex: 1;
+    line-height: 1.5;
+}
+
+.entry-time {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.empty-state {
+    color: #666;
+    text-align: center;
+    padding: 2rem;
+}
+
+/* Copilot Panel */
+.copilot-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #333;
+}
+
+.copilot-section:last-child {
+    border-bottom: none;
+}
+
+.copilot-section h3 {
+    font-size: 0.875rem;
+    color: #888;
+    margin-bottom: 0.75rem;
+}
+
+/* Router Decision */
+.router-decision {
+    background: #252525;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.urgency-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.urgency-high {
+    background: #ef4444;
+    color: white;
+}
+
+.urgency-medium {
+    background: #f59e0b;
+    color: white;
+}
+
+.urgency-low {
+    background: #6b7280;
+    color: white;
+}
+
+.trigger-reason {
+    font-size: 0.875rem;
+    color: #aaa;
+    margin-bottom: 0.5rem;
+}
+
+.suggested-skills, .active-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    background: #333;
+    border-radius: 999px;
+    color: #aaa;
+}
+
+.skill-badge.active {
+    background: #6366f1;
+    color: white;
+}
+
+.no-skills {
+    color: #666;
+    font-size: 0.875rem;
+}
+
+/* Answer Card */
+.answer-card {
+    background: #252525;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #6366f1;
+}
+
+.answer-text {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.answer-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+
+.confidence {
+    font-size: 0.75rem;
+    background: #333;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.skill-used {
+    font-size: 0.75rem;
+    background: #6366f1;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.caveats, .followups, .sources {
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+}
+
+.caveats ul, .followups ul {
+    margin-left: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.source-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    background: #333;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+/* Compare Mode */
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.toggle input {
+    width: 18px;
+    height: 18px;
+}
+
+.compare-results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.compare-column {
+    background: #252525;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.compare-column h4 {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.compare-column p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+
+/* Ask Panel */
+.ask-panel {
+    padding: 1rem 2rem;
+    background: #1a1a1a;
+    border-top: 1px solid #333;
+}
+
+.ask-input-container {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.ask-input-container input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 1rem;
+}
+
+.ask-input-container input:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+.ask-input-container input::placeholder {
+    color: #666;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
