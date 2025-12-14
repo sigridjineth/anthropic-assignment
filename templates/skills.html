@@ -121,9 +121,10 @@
                             </h3>
                             <ul class="file-list">
                                 <template x-for="file in skill.knowledge" :key="file.file">
-                                    <li class="file-item" :class="file.type">
+                                    <li class="file-item clickable" :class="file.type" @click="viewFile(skill.id, file.file)">
                                         <span class="file-icon" x-text="file.type === 'main' ? '📘' : '📄'"></span>
                                         <span class="file-name" x-text="file.file"></span>
+                                        <span class="view-hint">Click to view</span>
                                     </li>
                                 </template>
                             </ul>
@@ -140,7 +141,7 @@
                             </h3>
                             <ul class="file-list learnings">
                                 <template x-for="learning in skill.learnings" :key="learning.file">
-                                    <li class="file-item learning">
+                                    <li class="file-item learning clickable" @click="viewFile(skill.id, learning.file)">
                                         <div class="learning-info">
                                             <span class="file-icon">💡</span>
                                             <span class="learning-company" x-text="learning.company || 'Unknown'"></span>
@@ -166,6 +167,47 @@
             <p>No skills found.</p>
         </div>
     </main>
+
+    <!-- File Viewer Modal -->
+    <div class="modal-overlay" x-show="viewerOpen" x-cloak @click.self="closeViewer()" x-transition:enter="modal-enter" x-transition:leave="modal-leave">
+        <div class="modal-container file-viewer-modal">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="modal-skill-badge" x-text="viewerData?.skill_id"></span>
+                    <h2 x-text="viewerData?.filename"></h2>
+                </div>
+                <button class="modal-close" @click="closeViewer()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Loading -->
+                <div class="viewer-loading" x-show="viewerLoading">
+                    <div class="loading-spinner"></div>
+                    <span>Loading file...</span>
+                </div>
+                <!-- Metadata -->
+                <div class="viewer-metadata" x-show="!viewerLoading && viewerData?.metadata && Object.keys(viewerData.metadata).length > 0">
+                    <template x-for="(value, key) in viewerData?.metadata || {}" :key="key">
+                        <div class="metadata-item">
+                            <span class="metadata-key" x-text="key"></span>
+                            <span class="metadata-value" x-text="typeof value === 'object' ? JSON.stringify(value) : value"></span>
+                        </div>
+                    </template>
+                </div>
+                <!-- Content -->
+                <div class="viewer-content" x-show="!viewerLoading">
+                    <pre x-text="viewerData?.body || viewerData?.content"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="file-path" x-text="viewerData?.path"></span>
+                <button class="btn-secondary" @click="closeViewer()">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -177,9 +219,40 @@ function skillsApp() {
         git: null,
         loading: true,
         expandedSkills: {},
+        viewerOpen: false,
+        viewerLoading: false,
+        viewerData: null,
 
         async init() {
             await this.loadSkills();
+        },
+
+        async viewFile(skillId, filePath) {
+            this.viewerOpen = true;
+            this.viewerLoading = true;
+            this.viewerData = null;
+
+            try {
+                const response = await fetch(`/api/skills/${skillId}/file?path=${encodeURIComponent(filePath)}`);
+                if (response.ok) {
+                    this.viewerData = await response.json();
+                } else {
+                    const err = await response.json();
+                    alert('Failed to load file: ' + (err.detail || 'Unknown error'));
+                    this.viewerOpen = false;
+                }
+            } catch (e) {
+                console.error('Failed to load file:', e);
+                alert('Failed to load file');
+                this.viewerOpen = false;
+            } finally {
+                this.viewerLoading = false;
+            }
+        },
+
+        closeViewer() {
+            this.viewerOpen = false;
+            this.viewerData = null;
         },
 
         async loadSkills() {
@@ -554,6 +627,201 @@ function skillsApp() {
     text-align: center;
     padding: 60px;
     color: var(--text-secondary);
+}
+
+/* Clickable file items */
+.file-item.clickable {
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.file-item.clickable:hover {
+    background: var(--bg-secondary);
+    transform: translateX(4px);
+}
+
+.view-hint {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.file-item.clickable:hover .view-hint {
+    opacity: 1;
+}
+
+/* File Viewer Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+}
+
+.modal-enter {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-leave {
+    animation: fadeOut 0.15s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.modal-container {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.file-viewer-modal {
+    max-width: 900px;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-skill-badge {
+    padding: 4px 10px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--text-secondary);
+}
+
+.modal-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+}
+
+.modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.viewer-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 12px;
+    color: var(--text-secondary);
+}
+
+.viewer-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 24px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.metadata-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.metadata-key {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.metadata-value {
+    color: var(--text-primary);
+    font-family: monospace;
+    background: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.viewer-content {
+    padding: 24px;
+}
+
+.viewer-content pre {
+    margin: 0;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+    border-radius: 0 0 16px 16px;
+}
+
+.file-path {
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--text-muted);
 }
 </style>
 {% endblock %}

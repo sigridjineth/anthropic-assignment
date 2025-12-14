@@ -542,3 +542,47 @@ async def list_skills():
         result.append(skill_data)
 
     return {"skills": result, "git": git_info}
+
+
+@router.get("/api/skills/{skill_id}/file")
+async def get_skill_file(skill_id: str, path: str):
+    """Get the content of a skill file."""
+    skills_dir = Path(__file__).parent.parent.parent / "skills"
+    skill_dir = skills_dir / skill_id
+
+    if not skill_dir.exists():
+        raise HTTPException(status_code=404, detail=f"Skill not found: {skill_id}")
+
+    # Sanitize path to prevent directory traversal
+    if ".." in path or path.startswith("/"):
+        raise HTTPException(status_code=400, detail="Invalid path")
+
+    file_path = skill_dir / path
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+
+    if not file_path.is_file():
+        raise HTTPException(status_code=400, detail="Path is not a file")
+
+    content = file_path.read_text(encoding="utf-8")
+
+    # Parse frontmatter if exists
+    metadata = {}
+    body = content
+    if content.startswith("---"):
+        end = content.find("---", 3)
+        if end != -1:
+            try:
+                metadata = yaml.safe_load(content[3:end]) or {}
+                body = content[end + 3:].strip()
+            except Exception:
+                pass
+
+    return {
+        "skill_id": skill_id,
+        "path": path,
+        "filename": file_path.name,
+        "content": content,
+        "body": body,
+        "metadata": metadata,
+    }
