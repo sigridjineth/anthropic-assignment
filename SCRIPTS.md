@@ -1,11 +1,23 @@
-# Interview Copilot Demo Script — Final v9.1
+# Interview Copilot Demo Script — Final v9.2
+
+> **Key Changes from v9.1:**
+> - All narrations rewritten with deeper emotional hooks and technical clarity
+> - Added stage directions (pauses, gestures, transitions)
+> - Screen 1: Problem-first hook with visceral "I should know this" moment
+> - Screen 2: "Plugins for Claude" mental model
+> - Screen 4: Concrete customer scenario painted vividly
+> - Screen 5: Crystal clear two-layer distinction
+> - Screen 8 (KEY MOMENT): Built-up anticipation, beat-by-beat breakdown
+> - Screen 9: Sources as trust mechanism emphasized
+> - Screen 10: "Flywheel" concept — calls generate knowledge, knowledge improves calls
+> - Screen 15: Strong close with conviction cue
 
 > **Key Changes from v9:**
-> - Added "Why Skills, Not RAG?" slide (Screen 4.5) — explains structured knowledge vs chunked fragments
-> - Added `interview_records` to AVAILABLE skills in Screen 7 (context before it appears in Screen 10)
-> - Removed Fallback pattern explanation (Screen 14) — keeps CDP Skills value clear
+> - Added "Why Skills, Not RAG?" slide (Screen 4.5)
+> - Added `interview_records` to AVAILABLE skills in Screen 7
+> - Removed Fallback pattern explanation (Screen 14)
 > - Fixed date: 2024 → 2025
-> - Removed "...more coming" (no roadmap speculation)
+> - Removed "...more coming"
 > - Clarified progressive disclosure vs orchestration as two distinct layers
 
 ---
@@ -91,11 +103,11 @@
 
 ### Narration (12s)
 
-> "Skills are capability bundles.
+> "Think of Skills like **plugins for Claude** — but ones that run in a secure container with actual code execution.
 >
-> Anthropic provides platform skills — document generation, PDF handling. You create custom skills for your needs.
+> Anthropic provides platform skills: document generation, PDF handling. You create custom skills for *your* needs.
 >
-> Today's demo: using custom skills to package **org knowledge**. But remember — that's one use case. Skills can package any capability."
+> Today I'm showing org knowledge — but Skills can package *any* capability. That's the mental model."
 
 ---
 
@@ -129,11 +141,11 @@
 
 ### Narration (15s)
 
-> "For custom skills, you package files in Git. `SKILL.md` is the entry point with YAML frontmatter — name and description. Supporting files load through **progressive disclosure** — only when the conversation needs them.
+> "Here's the key insight: **Skills live in Git**. Your team's knowledge becomes version-controlled code.
 >
-> `memory_playbook` is our implementation guide for the Memory feature. Not the feature itself — the playbook for enabling it.
+> `SKILL.md` is the entry point — YAML frontmatter for metadata, body for instructions. Supporting files? They load through **progressive disclosure** — Claude only reads what the conversation actually needs.
 >
-> Git gives you version control, PR review, rollback."
+> This means: PR review before changes go live. Rollback if something breaks. Audit trail for compliance. Your knowledge gets the same rigor as your codebase."
 
 ---
 
@@ -167,13 +179,15 @@
 
 ### Narration (18s)
 
-> "Here's the problem Skills can solve for org knowledge.
+> *(Gesture at the silos)*
 >
-> Your org has expertise — platform docs, DevRel patterns, sales guidance. But it's siloed.
+> "Let me make this concrete. Your platform team has amazing docs. DevRel has battle-tested patterns. Sales has pricing nuances.
 >
-> Customer asks a technical question. The answer exists in your platform team's docs. But it doesn't flow to you.
+> But knowledge doesn't flow. It *stays* where it was created.
 >
-> Skills let you package that knowledge as capabilities your agents can load on demand — with sources."
+> Customer asks: 'Can Claude remember things across sessions?' The answer exists — in your platform team's Memory docs. But you're on the call, not them.
+>
+> Skills solve this by making knowledge **loadable on demand** — and here's the crucial part — **with verifiable sources**. Not 'I think so' — 'Here's exactly where I got this.'"
 
 ---
 
@@ -211,13 +225,15 @@
 
 ### Narration (15s)
 
-> "Quick note: why Skills instead of RAG?
+> *(Slight pause — this is an important distinction)*
 >
-> RAG retrieves chunked fragments — great for Q&A. 'What is X?'
+> "Now, you might ask: 'Why not just use RAG?'
 >
-> Skills provide **structured knowledge with hierarchy** — great for execution. 'How do I implement X?'
+> Here's the difference. RAG takes your docs, slices them into chunks, and retrieves fragments. Great for Q&A. 'What is X?'
 >
-> When your agent needs to **do something**, not just answer, structured knowledge wins."
+> Skills preserve **structure** — hierarchy, relationships, decision trees. Great for *execution*. 'How do I implement X correctly?'
+>
+> RAG finds facts. Skills guide actions. When your agent needs to *do* something, structured knowledge wins."
 
 ---
 
@@ -253,13 +269,13 @@
 
 ### Narration (15s)
 
-> "How does dynamic loading work? Two layers.
+> "Let me show you the architecture. There are **two layers** — and this distinction matters.
 >
-> First, **orchestration**: Router decides *which skill* to attach. Orchestrator puts it in `container.skills`.
+> **Layer 1: Orchestration.** *Your app* decides which skill to attach. Router analyzes the transcript, picks the skill, orchestrator puts it in `container.skills`.
 >
-> Second, **progressive disclosure**: Within the attached skill, Claude loads only the files the conversation needs.
+> **Layer 2: Progressive disclosure.** *Claude* decides which files to read within that skill. Only what the conversation needs — not everything.
 >
-> The agent isn't the model — it's the orchestration. Deciding what knowledge to load, and when."
+> This is the key insight: **The agent isn't Claude. The agent is your orchestration** — deciding what knowledge to load, and when."
 
 ---
 
@@ -294,11 +310,13 @@
 
 ### Narration (13s)
 
-> "The difference.
+> "Here's the transformation.
 >
-> Without your org's knowledge skills: Claude gives a general answer — still capable, but missing your specific context.
+> **Without** org knowledge skills: Claude gives a general answer. Still capable — Claude is a powerful model — but it's missing *your* specific context. Your enablement steps. Your caveats.
 >
-> With skills: org-specific answer, grounded in your team's playbooks. The agent **cites internal sources**."
+> **With** skills: The answer cites *your* playbooks. Not 'I think Memory works like this' — but 'According to memory_playbook, here are the exact SDK patterns.'
+>
+> That's the shift: from 'sounds right' to **provably right**."
 
 ---
 
@@ -331,13 +349,15 @@
 
 ### Narration (17s)
 
-> "I built an Interview Copilot to demo this. Let me show you.
+> *(Demo starts — speak with energy)*
 >
-> I'm Sigrid, DevRel. Call with FinBot, a fintech startup.
+> "Let me show you this in action. I built an Interview Copilot.
 >
-> Prep Agent attached baseline skills from the customer brief. Router handles everything dynamic.
+> I'm Sigrid, DevRel at Anthropic. I'm about to start a call with FinBot — a fintech startup, Series B, 6 months into using our API.
 >
-> `memory_playbook` is available — our implementation guide for the Memory feature. Memory is a platform feature. I'm showing how we package our enablement guidance as a skill, so reps can apply it correctly."
+> Watch what happens: Prep Agent already analyzed their brief and attached baseline skills — `context_editing_guide`, `fintech_patterns`.
+>
+> See `memory_playbook` in Available? That's *not* the Memory feature — it's our team's **implementation guide** for that feature. The playbook for enabling it correctly. Router will attach it if the conversation needs it."
 
 ---
 
@@ -371,15 +391,23 @@
 
 ### Narration (30s) — SLOW DOWN
 
-> "Watch closely. This is the key moment.
+> *(Pause before speaking — build anticipation)*
 >
-> Sarah mentions 'come back the next day', 'remember what they said.'
+> "Watch closely. **This is the key moment.**"
 >
-> Router decides: attach `memory_playbook`. To be clear — I'm not attaching the Memory feature itself. I'm attaching our team's **implementation guide** for that feature.
+> *(Point at transcript)*
 >
-> See 'Skills for Next Call' — now three skills. The answerer will have access to our Memory playbook.
+> "Sarah says: 'Users come back the next day expecting Claude to remember.' 'Come back the next day.' 'Remember.'
 >
-> Router **decided which skill**. Now Claude will use **progressive disclosure** to load only the files it needs from that skill."
+> Router catches this. Look — 'Detected: cross-session topic.' Confidence 89%. Decision: **attach memory_playbook**."
+>
+> *(Beat)*
+>
+> "Now look at 'Skills for Next Call' — it went from two to three. The answerer's *next* response will have access to our Memory implementation guide.
+>
+> This is the two-layer system in action: Router **decided which skill**. Claude will use **progressive disclosure** to read only what it needs from that skill.
+>
+> The magic happens between API calls."
 
 ---
 
@@ -425,13 +453,19 @@
 
 ### Narration (20s) — EMPHASIZE SOURCES
 
-> "Now look at the response.
+> *(Point at the response)*
 >
-> It combines three skills. But here's the key — look at **Sources**.
+> "Here's the answer. Context Editing for within-session. Memory for cross-session. Fintech-specific: compliance-critical info should persist.
 >
-> Every claim traces to a specific file with a quoted excerpt. This is the difference between 'sounds right' and '**provably right**.'
+> But scroll down. Look at **Sources**."
 >
-> Three teams' knowledge, one conversation, verifiable."
+> *(Point at each source)*
+>
+> "Every claim traces to a specific file. Not just 'memory_playbook' — but the actual excerpt: 'Cross-session persistence for user preferences.'
+>
+> Three teams' knowledge. One conversation. **Verifiable.**
+>
+> That's the difference between 'sounds right' and 'provably right.' Your customer can trust this because *you* can verify it."
 
 ---
 
@@ -470,15 +504,23 @@
 
 ### Narration (35s)
 
-> "After the call, two things happen.
+> *(Transition to post-call view)*
 >
-> First, the full interview is automatically archived to `interview_records` — you saw it in the available skills. It stores complete call transcripts for future reference.
+> "Call's done. Now watch what happens.
 >
-> Second, PostCall Agent proposes skill updates. It detected a pattern: fintech + Memory = emphasize compliance persistence.
+> First — see 'Interview Archived'? The full transcript is saved to `interview_records`. Every call becomes searchable knowledge for future conversations.
 >
-> When I click Approve, the app saves this learning to the skill's `learnings/` folder. In production, you'd wire this to a GitHub PR workflow for team review.
+> Second — this is where it gets interesting. PostCall Agent analyzed the conversation and **proposed a skill update**.
 >
-> To be clear: **Platform provides the primitives** — `container.skills`, `code_execution`. **My app provides everything else** — orchestration, state management, this UI."
+> Look: 'Memory + Compliance Pattern. For fintech, compliance-critical data should persist in Memory.' It detected a pattern from this specific call and is suggesting we codify it."
+>
+> *(Point at Approve button)*
+>
+> "When I click Approve, this learning saves to `learnings/` folder. In production, you'd wire this to a GitHub PR — team review before it goes live.
+>
+> This is the flywheel: **Calls generate knowledge. Knowledge improves future calls.**
+>
+> And to be crystal clear: **Platform provides the primitives** — `container.skills`, `code_execution`. **My app provides everything else** — the orchestration, the state, this UI, the Git integration."
 
 ---
 
@@ -523,11 +565,13 @@
 
 ### Narration (15s)
 
-> "Step 1: Package your skills.
+> *(Shift to teaching mode)*
 >
-> Each skill has a `SKILL.md` with YAML frontmatter — name and description. The body contains instructions Claude follows when the skill is attached.
+> "Now let me show you how to build this yourself. Three steps.
 >
-> Keep it focused: 'When to Use', key patterns, specific numbers. Claude reads this in the code-execution container."
+> **Step 1: Package your skills.** Each skill needs a `SKILL.md`. YAML frontmatter — name and description. The body? Instructions Claude follows when this skill is attached.
+>
+> Keep it actionable. 'When to Use' — specific triggers. Key patterns with real numbers. Claude reads this in the code-execution container and treats it as authoritative guidance."
 
 ---
 
@@ -575,11 +619,11 @@
 
 ### Narration (15s)
 
-> "Step 2: Build your Router.
+> "**Step 2: Build your Router.** This is the decision layer.
 >
-> Use **Tool Use** for reliable structured output. Define a tool schema, force it with `tool_choice`, and Haiku returns a clean JSON decision.
+> I'm using **Tool Use** with a forced `tool_choice`. Why? Reliable structured output. Claude Haiku analyzes the transcript, returns clean JSON: 'needs_skill: true, suggested_skills: memory_playbook, confidence: 0.89.'
 >
-> Router **decides** — but doesn't attach anything. That's the orchestrator's job."
+> Important: Router only **decides**. It doesn't attach anything. Your orchestrator code takes that decision and passes the skill to the next API call."
 
 ---
 
@@ -621,11 +665,11 @@
 
 ### Narration (15s)
 
-> "Step 3: Attach skills.
+> "**Step 3: Attach via API.** This is where the platform takes over.
 >
-> Upload your skill folder once — you get a `skill_id`. Then pass it in `container.skills` with `code_execution` enabled.
+> Upload your skill folder once — you get a `skill_id`. Then, on your messages call, pass it in `container.skills` with `code_execution` enabled.
 >
-> Skill files appear at `/skills/{name}/` in the container. Claude reads them on demand. **Progressive disclosure** — load only what the conversation needs."
+> What happens? Skill files appear at `/skills/{name}/` in the container. Claude can read them. But here's the key: it only reads what the conversation needs. **Progressive disclosure** — built into the platform."
 
 ---
 
@@ -657,7 +701,9 @@
 
 ### Narration (5s)
 
-> "My app uses four agents. But yours could be simpler — even a single agent. The pattern is what matters: **orchestrator decides, container.skills executes**."
+> "This is *my* architecture — four specialized agents. But yours could be simpler. Even a single agent works.
+>
+> The pattern is what matters: **Your code decides. The platform executes.**"
 
 ---
 
@@ -670,18 +716,19 @@
 │  Wrap Up                                                            │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  Skills = modular capability bundles                                │
-│  Today's demo = org knowledge use case                              │
+│  Today = ONE use case (DevRel org knowledge)                        │
 │                                                                     │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐   │
-│  │                  │  │                  │  │                  │   │
-│  │    GROUNDED      │  │    REVIEWABLE    │  │    REUSABLE      │   │
-│  │                  │  │                  │  │                  │   │
-│  │  Every answer    │  │  Skills in Git:  │  │  Package once,   │   │
-│  │  cites sources   │  │  PR review,      │  │  use across all  │   │
-│  │  from your docs  │  │  rollback, audit │  │  your agents     │   │
-│  │                  │  │                  │  │                  │   │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘   │
+│  OTHER USE CASES                                                    │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  🧪 ML Training Scripts                                       │  │
+│  │     Share hyperparameters, training configs across team       │  │
+│  │                                                               │  │
+│  │  📋 Experiment Knowledge                                      │  │
+│  │     "Failed Attempts" tables — what NOT to do (most valuable) │  │
+│  │                                                               │  │
+│  │  🔧 Workflow Automation                                       │  │
+│  │     Deployment scripts, CI/CD patterns, infra configs         │  │
+│  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
 │  ─────────────────────────────────────────────────────────────      │
 │                                                                     │
@@ -689,32 +736,62 @@
 │                                                                     │
 │  🔗 Code:  github.com/sigridjineth/interview-copilot                │
 │  🚀 Demo:  interview-copilot.vercel.app                             │
+│  📝 Blog:  hf.co/blog/sionic-ai/claude-code-skills-training         │
 │  📧 Questions:  sigrid.jinhyung@gmail.com                           │
-│                                                                     │
-│  ─────────────────────────────────────────────────────────────      │
-│                                                                     │
-│  Platform: container.skills + code_execution                        │
-│  You: orchestration + workflow                                      │
-│  Together: agents with real capabilities                            │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Narration (45s)
 
-> "Let me wrap up.
+> *(Slow down for the close)*
 >
-> Claude Skills are modular capability bundles. Today I showed one use case — org knowledge — but Skills can package any capability.
+> "Let me bring it together.
 >
-> Three operational wins: **Grounded** — every answer cites sources. **Reviewable** — Skills live in Git. **Reusable** — package once, use everywhere.
+> Today I showed ONE use case — DevRel org knowledge. But Skills can package *any* capability.
 >
-> If you want to dig deeper, all the code is on GitHub — I'll share the link. You can also try the live demo on Vercel right now.
+> For example: ML training scripts. Your team runs hundreds of experiments — hyperparameters, configs, what worked. Package that as a Skill. Next teammate starting a similar experiment? Claude surfaces the relevant knowledge automatically.
 >
-> Questions? Reach out anytime — my email is on the screen. I'd love to hear what you build.
+> Even more valuable: **failure documentation**. 'Failed Attempts' tables — what NOT to do and why. This is often the most useful part. Mistakes become team memory.
 >
-> Claude Skills provides the primitives. You build the orchestration. Together: agents with real capabilities.
+> I wrote about this pattern on my blog — link is on the screen."
+>
+> *(Point at resources)*
+>
+> "All the code is on GitHub. Live demo on Vercel — try it now.
+>
+> Questions? Email me anytime. I'd love to hear what you build.
 >
 > Thanks for watching."
+>
+> *(Final statement — speak with conviction)*
+>
+> "Platform provides the primitives. You build the orchestration. Together? **Agents with real capabilities. Not just prompts.**"
+>
+> *(Smile)*
+>
+> "Thanks for watching. Go build something."
+
+---
+
+## Changes Summary: v9.1 → v9.2
+
+| Section | v9.1 | v9.2 |
+|---------|------|------|
+| All Narrations | Functional | **Emotionally resonant + stage directions** |
+| Screen 1 | Definition hook | **Problem-first "I should know this" moment** |
+| Screen 2 | Capability bundles | **"Plugins for Claude" mental model** |
+| Screen 3 | File structure | **"Knowledge gets same rigor as codebase"** |
+| Screen 4 | Silo problem | **Concrete customer scenario, vivid stakes** |
+| Screen 4.5 | RAG vs Skills | **"RAG finds facts. Skills guide actions."** |
+| Screen 5 | Two layers | **Crystal clear Layer 1/Layer 2 distinction** |
+| Screen 6 | Before/After | **"Sounds right → Provably right" transformation** |
+| Screen 7 | Landing | **Anticipation building, persona intro** |
+| Screen 8 | KEY MOMENT | **Beat-by-beat breakdown, "magic between API calls"** |
+| Screen 9 | Sources | **Trust mechanism, "verify it yourself"** |
+| Screen 10 | Post-call | **Flywheel concept introduced** |
+| Screen 11-14 | How to Build | **Teaching mode, actionable framing** |
+| Screen 15 | Wrap Up | **Strong conviction close, "Go build something"** |
 
 ---
 
@@ -733,7 +810,7 @@
 
 ---
 
-## Key Safety Phrases (v9.1)
+## Key Safety Phrases (v9.2)
 
 | Situation | Phrase |
 |-----------|--------|
@@ -1054,5 +1131,5 @@ response = client.beta.messages.create(
 
 ---
 
-*Script v9.1 — Added Skills vs RAG, fixed interview_records context, removed fallback, clarified two-layer architecture*
+*Script v9.2 — Deep narration rewrite with emotional hooks, stage directions, and technical clarity*
 *Last updated: 2025-12-14*
