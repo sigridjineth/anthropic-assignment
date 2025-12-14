@@ -747,27 +747,27 @@
 
 > *(Slow down for the close)*
 >
-> "Let me bring it together.
+> "So — that's Claude Skills.
 >
-> Today I showed ONE use case — DevRel org knowledge. But Skills can package *any* capability.
+> Today I showed DevRel org knowledge. But this is just one use case.
 >
-> Another example: ML training scripts. Your team runs hundreds of experiments — hyperparameters, configs, what worked, what failed. Package that as a Skill. Next teammate starting a similar experiment? Claude surfaces the relevant knowledge automatically. I wrote about this on my blog — link is on the screen."
+> Another example I use daily: ML training scripts. My team runs hundreds of experiments — hyperparameters, configs, what worked, what failed. We package all of that as Skills. Next time someone starts a similar experiment? Claude surfaces the relevant knowledge automatically. I wrote about this on my blog — link is on the screen."
 >
-> *(Point at resources)*
+> *(Pause, then point at resources)*
 >
-> "All the code is on GitHub. Live demo on Vercel — try it now.
+> "If you want to dig deeper — code is on GitHub, live demo is on Vercel.
 >
-> Questions? Email me anytime. I'd love to hear what you build.
+> Questions? My email is right there. Reach out anytime — I'd love to hear what you build with Skills."
 >
-> Thanks for watching."
+> *(Final beat — speak slower, with conviction)*
 >
-> *(Final statement — speak with conviction)*
+> "Platform provides the primitives. You build the orchestration.
 >
-> "Platform provides the primitives. You build the orchestration. Together? **Agents with real capabilities. Not just prompts.**"
+> Together? **Agents with real capabilities.**"
 >
-> *(Smile)*
+> *(Smile, final beat)*
 >
-> "Thanks for watching. Go build something."
+> "Go build something. Thanks for watching."
 
 ---
 
