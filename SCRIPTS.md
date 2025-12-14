@@ -718,16 +718,17 @@
 │                                                                     │
 │  Today = ONE use case (DevRel org knowledge)                        │
 │                                                                     │
-│  OTHER USE CASES                                                    │
+│  ANOTHER USE CASE                                                   │
 │  ┌───────────────────────────────────────────────────────────────┐  │
 │  │  🧪 ML Training Scripts                                       │  │
-│  │     Share hyperparameters, training configs across team       │  │
 │  │                                                               │  │
-│  │  📋 Experiment Knowledge                                      │  │
-│  │     "Failed Attempts" tables — what NOT to do (most valuable) │  │
+│  │  Team runs 100s of experiments — hyperparameters, configs,    │  │
+│  │  what worked, what failed. Package as Skills.                 │  │
 │  │                                                               │  │
-│  │  🔧 Workflow Automation                                       │  │
-│  │     Deployment scripts, CI/CD patterns, infra configs         │  │
+│  │  Next teammate starting similar experiment?                   │  │
+│  │  Claude surfaces the relevant knowledge automatically.        │  │
+│  │                                                               │  │
+│  │  → I wrote about this: hf.co/blog/sionic-ai/claude-code-...   │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
 │  ─────────────────────────────────────────────────────────────      │
@@ -750,11 +751,7 @@
 >
 > Today I showed ONE use case — DevRel org knowledge. But Skills can package *any* capability.
 >
-> For example: ML training scripts. Your team runs hundreds of experiments — hyperparameters, configs, what worked. Package that as a Skill. Next teammate starting a similar experiment? Claude surfaces the relevant knowledge automatically.
->
-> Even more valuable: **failure documentation**. 'Failed Attempts' tables — what NOT to do and why. This is often the most useful part. Mistakes become team memory.
->
-> I wrote about this pattern on my blog — link is on the screen."
+> Another example: ML training scripts. Your team runs hundreds of experiments — hyperparameters, configs, what worked, what failed. Package that as a Skill. Next teammate starting a similar experiment? Claude surfaces the relevant knowledge automatically. I wrote about this on my blog — link is on the screen."
 >
 > *(Point at resources)*
 >
