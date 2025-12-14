@@ -1,13 +1,4 @@
-# Technical Sales Copilot
-
-A production-grade AI copilot for Technical Sales teams, built with Claude.
-
-## Features
-
-- **Pre-call Preparation**: Generate session briefs, likely topics, and discovery questions
-- **Live Call Assistance**: Real-time skill activation and answer suggestions
-- **Dynamic Skills**: Architecture, Security, Roadmap, and Pricing knowledge bases
-- **Clean White UI**: ChatGPT-inspired design
+# Assignment
 
 ## Quick Start
 
@@ -84,7 +75,3 @@ make lint
 # Format code
 make format
 ```
-
-## License
-
-MIT
