@@ -830,6 +830,25 @@ body {
     display: inline-block;
 }
 
+.section-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.skills-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 12px;
+    font-style: italic;
+}
+
+.skill-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 8px;
+}
+
 /* Question list */
 .question-list {
     padding-left: 20px;

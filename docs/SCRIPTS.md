@@ -1,9 +1,4 @@
-# Interview Copilot Demo Script — Final v9.8
-
-> **Key Changes from v9.7:**
-> - **Customer Name Consistency**: Added "Sarah" to Screen 7 (Brief), Screen 8, Screen 9 transcripts
-> - **Mock Transcript File**: Created `docs/MOCK_TRANSCRIPT.md` with 3-turn build-up for demo
-> - Brief now shows: "FinBot (Series B) · Sarah, Head of Eng · API user 6 months"
+# Interview Copilot Demo Script — Final v9.7
 
 > **Key Changes from v9.6:**
 > - **PDF 순서 정렬**: RAG vs Skills를 Before/After 뒤로 이동 (Screen 6.5)
@@ -391,7 +386,7 @@
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  📋 BRIEF                                                        │
-│  FinBot (Series B) · Sarah, Head of Eng · API user 6 months      │
+│  Fintech (Series B) · Head of Engineering · API user 6 months    │
 │                                                                  │
 │  📦 ATTACHED (by Prep Agent — baseline from customer brief)      │
 │  ✅ context_editing_guide                                        │
@@ -478,7 +473,7 @@
 ┌──────────────────────────────┬──────────────────────────────────────┐
 │      TRANSCRIPT              │  COPILOT                             │
 │                              │                                      │
-│  [Sarah] 2:05 PM             │  💡 Suggested Response               │
+│  [Customer] 2:05 PM          │  💡 Suggested Response               │
 │  "...Is there a way to       │  ───────────────────────────────     │
 │  handle that?"               │                                      │
 │                              │  "Two things work together:          │
@@ -1264,5 +1259,5 @@ response = client.beta.messages.create(
 
 ---
 
-*Script v9.8 — Customer name consistency (Sarah) + Mock transcript file*
+*Script v9.7 — PDF 순서 정렬 + RAG vs Skills 나레이션 강화 (Naive RAG, Accumulative, Evolvable)*
 *Last updated: 2025-12-14*

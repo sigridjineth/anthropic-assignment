@@ -208,29 +208,41 @@
                     </div>
                 </div>
 
-                <!-- Skills -->
+                <!-- Skills - Attached -->
                 <div class="result-section">
-                    <h3>Skills</h3>
+                    <h3>📦 ATTACHED <span class="section-subtitle">(by Prep Agent — baseline from customer brief)</span></h3>
                     <div class="skill-status-list">
-                        <!-- Pre-attached (first 2) -->
                         <template x-for="(skill, index) in (prepResult?.recommended_skills || []).slice(0, 2)" :key="'attached-' + skill">
                             <div class="skill-status-item attached">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M20 6L9 17l-5-5"/>
                                 </svg>
-                                <span x-text="skill"></span>
-                                <span class="skill-note">pre-attached</span>
-                            </div>
-                        </template>
-                        <!-- Ready if needed (rest) -->
-                        <template x-for="skill in (prepResult?.recommended_skills || []).slice(2)" :key="'ready-' + skill">
-                            <div class="skill-status-item available">
-                                <span class="skill-circle"></span>
-                                <span x-text="skill"></span>
-                                <span class="skill-note">ready if needed</span>
+                                <span x-text="skill.replace(/_/g, ' ')"></span>
                             </div>
                         </template>
                     </div>
+                </div>
+
+                <!-- Skills - Available -->
+                <div class="result-section">
+                    <h3>📦 AVAILABLE <span class="section-subtitle">(Router attaches dynamically)</span></h3>
+                    <div class="skill-status-list">
+                        <template x-for="skill in (prepResult?.recommended_skills || []).slice(2)" :key="'ready-' + skill">
+                            <div class="skill-status-item available">
+                                <span class="skill-circle"></span>
+                                <span x-text="skill.replace(/_/g, ' ')"></span>
+                            </div>
+                        </template>
+                        <!-- Always show memory_playbook, pricing_guidance, interview_records as available -->
+                        <template x-if="!(prepResult?.recommended_skills || []).includes('cdp_memory')">
+                            <div class="skill-status-item available">
+                                <span class="skill-circle"></span>
+                                <span>memory_playbook</span>
+                                <span class="skill-hint">← Our guide for implementing Memory</span>
+                            </div>
+                        </template>
+                    </div>
+                    <p class="skills-note">These are CUSTOM skills our team created. You'd package your own org's knowledge.</p>
                 </div>
 
                 <!-- Discovery Questions (collapsible) -->

@@ -1,6 +1,6 @@
 ---
-name: cdp-memory
-description: Claude Developer Platform Memory feature. Persistent memory across conversations, user state management, and cross-session context.
+name: memory_playbook
+description: Cross-session persistence for user preferences, implementation guide for Memory feature.
 ---
 
 # Memory Skill

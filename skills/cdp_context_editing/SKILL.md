@@ -1,6 +1,6 @@
 ---
-name: cdp-context-editing
-description: Claude Developer Platform Context Editing feature. Managing context window, token optimization, summarization strategies, and persistent fact extraction for long conversations.
+name: context_editing_guide
+description: Managing context window, token optimization, summarization strategies for long conversations.
 ---
 
 # Context Editing Skill

@@ -132,31 +132,39 @@
                     <p class="summary-text" x-text="state.summarizer_state?.summary"></p>
                 </div>
 
-                <!-- Skill Activated - Compact -->
-                <div class="copilot-section skills-compact" x-show="state.skill_fired_log?.length">
-                    <div class="skills-fired-inline">
-                        <span class="skills-fired-label">⚡ Active:</span>
-                        <template x-for="(event, index) in (state.skill_fired_log || []).slice(-1)" :key="index">
-                            <template x-for="domain in event.domains" :key="domain">
-                                <span class="skill-tag" :class="{ 'is-meta': state.skill_metadata?.[domain]?.is_meta }">
-                                    <span class="meta-dot" x-show="state.skill_metadata?.[domain]?.is_meta"></span>
-                                    <span x-text="state.skill_metadata?.[domain]?.name || domain"></span>
-                                </span>
+                <!-- Router Decision Box - Prominent -->
+                <div class="copilot-section router-decision-box" x-show="state.skill_fired_log?.length" x-data="{ latestEvent: null }" x-effect="latestEvent = (state.skill_fired_log || []).slice(-1)[0]">
+                    <div class="router-decision-header">
+                        <span class="router-icon">⚡</span>
+                        <span class="router-title">ROUTER DECISION</span>
+                    </div>
+                    <div class="router-decision-content">
+                        <div class="router-detected" x-show="latestEvent?.trigger_reason">
+                            <span class="detected-label">Detected:</span>
+                            <span class="detected-value" x-text="latestEvent?.trigger_reason"></span>
+                        </div>
+                        <div class="router-action">
+                            <span class="action-label">Router DECIDES:</span>
+                            <template x-for="domain in latestEvent?.domains || []" :key="domain">
+                                <span class="action-skill">→ attach <strong x-text="state.skill_metadata?.[domain]?.name || domain"></strong></span>
                             </template>
-                        </template>
+                        </div>
+                        <p class="router-explanation" x-show="latestEvent?.detected_question">
+                            I'm not attaching the feature — I'm attaching our team's <strong>implementation guide</strong>.
+                        </p>
+                        <div class="router-confidence" x-show="latestEvent?.confidence">
+                            <span class="confidence-text">Confidence: <strong x-text="Math.round((latestEvent?.confidence || 0) * 100) + '%'"></strong></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Active Skills -->
+                <!-- Skills for Next Call -->
                 <div class="copilot-section">
                     <div class="skills-header">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                        <h3><span class="skills-label-active">ACTIVE</span> SKILLS</h3>
+                        <span class="skills-icon">📦</span>
+                        <h3>Skills for Next Call</h3>
                     </div>
-                    <div class="skill-checklist">
+                    <div class="skill-checklist" x-data="{ latestSkills: [] }" x-effect="latestSkills = (state.skill_fired_log || []).slice(-1)[0]?.domains || []">
                         <!-- Active skills (checked) with descriptions -->
                         <template x-for="skill in state.active_skills || []" :key="'active-' + skill">
                             <div class="skill-check-item active" :class="{ 'is-meta': state.skill_metadata?.[skill]?.is_meta }">
@@ -168,8 +176,8 @@
                                     </span>
                                     <span class="meta-badge" x-show="state.skill_metadata?.[skill]?.is_meta">META</span>
                                     <span class="skill-name" x-text="state.skill_metadata?.[skill]?.name || skill.replace(/_/g, ' ')"></span>
+                                    <span class="skill-new-badge" x-show="latestSkills.includes(skill)">← NEW</span>
                                 </div>
-                                <p class="skill-item-desc" x-show="state.skill_metadata?.[skill]?.description" x-text="state.skill_metadata?.[skill]?.description"></p>
                             </div>
                         </template>
                         <!-- Recommended but not active (unchecked) -->
@@ -212,9 +220,27 @@
                                         <span x-text="solution.action"></span>
                                     </div>
                                     <div class="solution-benefit" x-text="solution.benefit"></div>
-                                    <span class="solution-source" x-text="solution.source"></span>
                                 </div>
                             </template>
+                        </div>
+
+                        <!-- Sources Panel -->
+                        <div class="answer-sources" x-show="state.current_answer?.sources?.length">
+                            <div class="sources-header">
+                                <span class="sources-icon">📄</span>
+                                <span class="sources-title">SOURCES</span>
+                            </div>
+                            <div class="sources-list">
+                                <template x-for="(source, idx) in state.current_answer?.sources || []" :key="idx">
+                                    <div class="source-item">
+                                        <span class="source-bullet">•</span>
+                                        <div class="source-info">
+                                            <span class="source-file" x-text="source.file || source.title"></span>
+                                            <span class="source-excerpt" x-show="source.excerpt" x-text="'\"' + source.excerpt + '\"'"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
 
                         <!-- Full answer (collapsible) -->
@@ -305,24 +331,193 @@
 </div>
 
 <style>
-/* Compact Skills Inline */
-.skills-compact {
-    padding: 8px 0 !important;
+/* Router Decision Box */
+.router-decision-box {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 16px !important;
+    margin-bottom: 12px;
 }
 
-.skills-fired-inline {
+.router-decision-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
+    margin-bottom: 12px;
 }
 
-.skills-fired-label {
+.router-icon {
+    font-size: 18px;
+}
+
+.router-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #92400e;
+    text-transform: uppercase;
+}
+
+.router-decision-content {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.router-detected {
+    margin-bottom: 8px;
+}
+
+.detected-label {
     font-size: 12px;
     color: var(--text-muted);
+    margin-right: 6px;
+}
+
+.detected-value {
+    font-size: 13px;
+    color: var(--text-primary);
     font-weight: 500;
 }
 
+.router-action {
+    margin-bottom: 8px;
+}
+
+.action-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-right: 6px;
+}
+
+.action-skill {
+    font-size: 13px;
+    color: #059669;
+    display: block;
+    margin-top: 4px;
+}
+
+.action-skill strong {
+    color: #047857;
+}
+
+.router-explanation {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 8px 0;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    line-height: 1.4;
+}
+
+.router-explanation strong {
+    color: var(--text-primary);
+    font-style: normal;
+}
+
+.router-confidence {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.confidence-text {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.confidence-text strong {
+    color: #059669;
+    font-size: 14px;
+}
+
+/* Skill New Badge */
+.skill-new-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: #059669;
+    margin-left: 8px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-4px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Skills Icon */
+.skills-icon {
+    font-size: 16px;
+}
+
+/* Sources Panel */
+.answer-sources {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.sources-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.sources-icon {
+    font-size: 16px;
+}
+
+.sources-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.source-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.source-bullet {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.source-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.source-file {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6366f1;
+}
+
+.source-excerpt {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* Keep old styles for backwards compatibility */
 .skill-tag {
     display: inline-flex;
     align-items: center;
