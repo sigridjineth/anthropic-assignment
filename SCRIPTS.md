@@ -1,754 +1,1058 @@
-# Claude Skills Use Case: Technical Sales Copilot — 5분 데모 스크립트 (Final v2)
+# Interview Copilot Demo Script — Final v9.1
+
+> **Key Changes from v9:**
+> - Added "Why Skills, Not RAG?" slide (Screen 4.5) — explains structured knowledge vs chunked fragments
+> - Added `interview_records` to AVAILABLE skills in Screen 7 (context before it appears in Screen 10)
+> - Removed Fallback pattern explanation (Screen 14) — keeps CDP Skills value clear
+> - Fixed date: 2024 → 2025
+> - Removed "...more coming" (no roadmap speculation)
+> - Clarified progressive disclosure vs orchestration as two distinct layers
 
 ---
 
-## 타임라인
+## Timeline (5:00 target)
 
-| 시간 | 섹션 | 내용 |
-|------|------|------|
-| 0:00-0:35 | **Hook + Skills 개념** | 사일로 문제 → Skills = curated playbooks |
-| 0:35-1:05 | **Landing** | Session Brief + 일부 Skills 미리 attach |
-| 1:05-2:35 | **Live Session** | 3개 질문 시연 (맥락 유추 + 동적 Skill attach) |
-| 2:35-2:55 | **Post-call** | 10초 — Call note + 업데이트 제안 |
-| 2:55-4:25 | **How to Build + Architecture** | 코드 + 3-Agent 구조 통합 |
-| 4:25-5:00 | **Takeaway** | 핵심 메시지 |
+| Time | Section | Content |
+|------|---------|---------|
+| 0:00-0:15 | **Title + Hook** | Problem → Claude Skills solution |
+| 0:15-0:42 | **What is Skills** | Definition + Use case framing + Files |
+| 0:42-1:00 | **The Problem** | Silo problem (this use case's pain) |
+| 1:00-1:15 | **Why Skills, Not RAG?** | Structured knowledge vs chunked fragments |
+| 1:15-1:30 | **How it Works** | Orchestration |
+| 1:30-1:43 | **Before vs After** | Quick proof |
+| 1:43-3:25 | **Demo** | Landing → Dynamic Skill → Sources → Post-call |
+| 3:25-4:15 | **How to Build** | 3-step recipe + Real code + Architecture |
+| 4:15-5:00 | **Wrap Up** | Operational wins + Resources |
 
 ---
 
-## [0:00-0:35] Hook + Skills 개념
+## [0:00-0:15] Title + Hook
 
-### 화면 1 (0:00-0:15): Hook
+### Screen 1: Title
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
-│   You're on a sales call.                                           │
 │                                                                     │
-│   Customer: "When is that feature shipping?"                        │
-│   You: "Um... let me get back to you on that."                      │
+│      Claude Skills                                                  │
+│      ════════════════════════════════════════                       │
 │                                                                     │
-│   The information EXISTS — in Eng docs, Product roadmaps.           │
-│   It just doesn't FLOW to where it's needed.                        │
+│      Modular capabilities for your agents                           │
+│                                                                     │
+│                                                                     │
+│                                                    ✳ Anthropic      │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "You're on a sales call. Customer asks: 'When is that feature shipping?'
-> 
-> You don't know. The information exists — in engineering docs, product roadmaps.
-> It just doesn't flow to where it's needed."
+### Narration (15s)
+
+> *(Start with a pause, then speak deliberately)*
+>
+> "You're on a call. Customer asks a technical question. You *know* the answer exists — your platform team documented it last month.
+>
+> But you can't find it. It's in someone else's silo. That moment of 'I should know this'?
+>
+> Claude Skills solves this. Today I'll show you how."
+>
+> *(Transition cue: lean into the screen)*
 
 ---
 
-### 화면 2 (0:15-0:35): Skills = Curated Playbooks
+## [0:15-0:42] What is Claude Skills?
+
+### Screen 2 (0:15-0:27): Definition — Capability Bundles
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  What is Claude Skills?                                             │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Claude Skills                                                     │
-│   ═══════════════════════════════════════════════════════════════   │
+│  Modular capability bundles that run in code-execution container    │
 │                                                                     │
-│   📦 Curated, Versioned Playbooks                                   │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                                                               │  │
+│  │  PLATFORM SKILLS (Anthropic-provided)                         │  │
+│  │  • docx, pptx, xlsx generation                                │  │
+│  │  • PDF manipulation                                           │  │
+│  │                                                               │  │
+│  │  CUSTOM SKILLS (you create)                                   │  │
+│  │  • Org knowledge & playbooks       ← Today's demo             │  │
+│  │  • Workflow automation                                        │  │
+│  │  • API integration patterns                                   │  │
+│  │  • Anything you package                                       │  │
+│  │                                                               │  │
+│  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │  skills/                                                    │   │
-│   │  ├─ architecture/   ← Eng team maintains                    │   │
-│   │  ├─ roadmap/        ← Product team maintains                │   │
-│   │  └─ security/       ← Compliance team maintains             │   │
-│   └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
-│   Agent attaches the right playbook at the right time               │
-│   → Verified, policy-safe knowledge flows to the field              │
+│  Skills = capabilities. Org knowledge is ONE use case.              │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "Claude Skills lets you package org knowledge as **curated, versioned playbooks**.
-> 
-> Your agent attaches the right playbook at the right time — verified, policy-safe knowledge that flows to the field.
-> 
-> Let me show you."
+### Narration (12s)
+
+> "Skills are capability bundles.
+>
+> Anthropic provides platform skills — document generation, PDF handling. You create custom skills for your needs.
+>
+> Today's demo: using custom skills to package **org knowledge**. But remember — that's one use case. Skills can package any capability."
 
 ---
 
-## [0:35-1:05] Landing — Session Brief
-
-### 화면 3 (0:35-1:05): Session Ready (결과 중심)
+### Screen 3 (0:27-0:42): File Structure + Git
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  Custom Skills: Files in Git                                        │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Session Ready: Acme Payments                                      │
-│   ═══════════════════════════════════════════════════════════════   │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  skills/                                    ← Git repo        │  │
+│  │  ├─ context_editing_guide/                                    │  │
+│  │  │   ├─ SKILL.md              ← Entry point (metadata)        │  │
+│  │  │   └─ strategies.md         ← Pulled in on demand           │  │
+│  │  ├─ memory_playbook/          ← Our Memory implementation     │  │
+│  │  │   └─ SKILL.md                 guide (NOT the feature)      │  │
+│  │  └─ fintech_patterns/         ← Team learnings                │  │
+│  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
-│   📋 Brief                                                          │
-│   ───────────────────────────────────────────────────────────────   │
-│   Fintech (Series B) • Head of Engineering • Technical Discovery    │
-│   Flagged: On-premise, Compliance                                   │
+│  SKILL.md frontmatter:                                              │
+│  ---                                                                │
+│  name: context-editing-guide                                        │
+│  description: Managing context window, token optimization...        │
+│  ---                                                                │
 │                                                                     │
-│   🔮 Likely Topics                                                  │
-│   ───────────────────────────────────────────────────────────────   │
-│   1. System architecture (90%)                                      │
-│   2. On-premise options (85%)                                       │
-│   3. Security certifications (80%)                                  │
-│                                                                     │
-│   📦 Skills                                                         │
-│   ───────────────────────────────────────────────────────────────   │
-│   ✅ architecture   (pre-attached — likely needed)                  │
-│   ✅ security       (pre-attached — flagged topic)                  │
-│   ○  roadmap        (recommended — attach if needed)                │
-│   ○  case_studies   (available)                                     │
-│                                                                     │
-│   [Enter Session →]                                                 │
+│  ✓ Version controlled    ✓ PR reviewed    ✓ Rollback ready         │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "I've set up a session for Acme Payments — fintech, Head of Engineering.
-> 
-> The copilot generates a brief: likely topics based on the profile and what I flagged.
-> 
-> And here's the key: **some skills are pre-attached** — architecture and security, because they're highly likely.
-> 
-> Roadmap is **recommended but not attached yet**. The agent will attach it dynamically if the conversation goes there.
-> 
-> Let's enter."
+### Narration (15s)
+
+> "For custom skills, you package files in Git. `SKILL.md` is the entry point with YAML frontmatter — name and description. Supporting files load through **progressive disclosure** — only when the conversation needs them.
+>
+> `memory_playbook` is our implementation guide for the Memory feature. Not the feature itself — the playbook for enabling it.
+>
+> Git gives you version control, PR review, rollback."
 
 ---
 
-## [1:05-2:35] Live Session — 3개 질문
+## [0:42-1:00] The Problem (This Use Case)
 
-# Live Session 페르소나 구체화: Anthropic DevRel 세일즈
-
----
-
-## 페르소나 설정
-
-### 인터뷰어 (You): Anthropic DevRel
+### Screen 4: Silo Problem
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  The Problem (for org knowledge use case)                           │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   👤 You: Anthropic Developer Relations                             │
-│   ═══════════════════════════════════════════════════════════════   │
+│   ┌──────────┐      ┌──────────┐      ┌──────────┐                  │
+│   │ Platform │      │  DevRel  │      │  Sales   │                  │
+│   │   docs   │      │ patterns │      │ guidance │                  │
+│   └────┬─────┘      └────┬─────┘      └────┬─────┘                  │
+│        │                 │                 │                        │
+│        ▼                 ▼                 ▼                        │
+│      Stays             Stays             Stays                      │
+│      here              here              here                       │
 │                                                                     │
-│   Role: Developer Relations IC                                      │
-│   Mission: Help developers build better with Claude                 │
+│   Customer asks: "Can Claude remember things across sessions?"      │
+│   The answer exists — in someone else's silo.                       │
+│   It doesn't flow to where it's needed.                             │
 │                                                                     │
-│   Today's call:                                                     │
-│   • Technical discovery with potential enterprise customer          │
-│   • They're evaluating Claude for their AI product                  │
-│   • Need to understand their use case, recommend CDP features       │
-│                                                                     │
-│   Your tools:                                                       │
-│   • Skills: CDP feature docs, pricing, case studies, best practices │
-│   • Goal: Match their problem to the right platform feature         │
+│   Skills can solve this: package team knowledge as capabilities     │
+│   your agents can load on demand.                                   │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+### Narration (18s)
+
+> "Here's the problem Skills can solve for org knowledge.
+>
+> Your org has expertise — platform docs, DevRel patterns, sales guidance. But it's siloed.
+>
+> Customer asks a technical question. The answer exists in your platform team's docs. But it doesn't flow to you.
+>
+> Skills let you package that knowledge as capabilities your agents can load on demand — with sources."
+
 ---
 
-### 인터뷰이 (Customer): FinBot의 Head of Engineering
+## [1:00-1:15] Why Skills, Not RAG? (NEW)
+
+### Screen 4.5: Skills vs RAG
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  Why Skills, Not RAG?                                               │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   🏢 Customer: FinBot                                               │
-│   ═══════════════════════════════════════════════════════════════   │
+│  ┌─────────────────────────────┐  ┌─────────────────────────────┐   │
+│  │           RAG               │  │          SKILLS             │   │
+│  ├─────────────────────────────┤  ├─────────────────────────────┤   │
+│  │                             │  │                             │   │
+│  │  Chunked fragments          │  │  Structured knowledge       │   │
+│  │  (A4 pages sliced up)       │  │  (hierarchy, relationships) │   │
+│  │                             │  │                             │   │
+│  │  "Find the right chunk"     │  │  "Guide the right action"   │   │
+│  │                             │  │                             │   │
+│  │  Good for: Q&A              │  │  Good for: Execution        │   │
+│  │  "What is X?"               │  │  "How do I implement X?"    │   │
+│  │                             │  │                             │   │
+│  │  Output: Answer             │  │  Output: Action             │   │
+│  │                             │  │                             │   │
+│  └─────────────────────────────┘  └─────────────────────────────┘   │
 │                                                                     │
-│   Company: FinBot (Series B fintech startup)                        │
-│   Product: AI-powered financial advisor chatbot                     │
-│   Users: 50K+ retail investors                                      │
-│                                                                     │
-│   Attendee: Sarah Chen, Head of Engineering                         │
-│   Background: Ex-Stripe, 8 years building payment systems           │
-│                                                                     │
-│   Current situation:                                                │
-│   • Using Claude API for 6 months                                   │
-│   • Chatbot handles portfolio questions, market analysis            │
-│   • Conversations get LONG (users ask follow-ups for 20+ turns)     │
-│                                                                     │
-│   Pain points:                                                      │
-│   • Token costs exploding as conversations grow                     │
-│   • Context window filling up, losing early context                 │
-│   • "Claude forgets what we discussed 10 messages ago"              │
-│   • Tried naive truncation → bad user experience                    │
-│                                                                     │
-│   What she's looking for:                                           │
-│   • Better way to manage long conversations                         │
-│   • Keep costs reasonable                                           │
-│   • Maintain conversation quality                                   │
+│  RAG retrieves facts. Skills guide actions.                         │
+│  When your agent needs to DO something — not just ANSWER —          │
+│  structured knowledge wins.                                         │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
----
+### Narration (15s)
 
-## Skills 구성 (DevRel용)
-
-```
-skills-registry.json (Anthropic DevRel)
-┌─────────────────────────────────────────────────────────────────────┐
-│  {                                                                  │
-│    "skills": [                                                      │
-│      {                                                              │
-│        "id": "cdp_context_editing",                                 │
-│        "name": "Context Editing",                                   │
-│        "owner": "platform-docs",                                    │
-│        "description": "Managing context window, token optimization" │
-│      },                                                             │
-│      {                                                              │
-│        "id": "cdp_memory",                                          │
-│        "name": "Memory",                                            │
-│        "owner": "platform-docs",                                    │
-│        "description": "Persistent memory across conversations"      │
-│      },                                                             │
-│      {                                                              │
-│        "id": "cdp_skills",                                          │
-│        "name": "Skills",                                            │
-│        "owner": "platform-docs",                                    │
-│        "description": "Custom knowledge packages for agents"        │
-│      },                                                             │
-│      {                                                              │
-│        "id": "fintech_patterns",                                    │
-│        "name": "Fintech Customer Patterns",                         │
-│        "owner": "devrel-learnings",                                 │
-│        "description": "Common fintech use cases, objections, wins"  │
-│      },                                                             │
-│      {                                                              │
-│        "id": "pricing_guidance",                                    │
-│        "name": "Pricing & Tiers",                                   │
-│        "owner": "sales-enablement",                                 │
-│        "description": "Token pricing, tier recommendations"         │
-│      }                                                              │
-│    ]                                                                │
-│  }                                                                  │
-└─────────────────────────────────────────────────────────────────────┘
-```
+> "Quick note: why Skills instead of RAG?
+>
+> RAG retrieves chunked fragments — great for Q&A. 'What is X?'
+>
+> Skills provide **structured knowledge with hierarchy** — great for execution. 'How do I implement X?'
+>
+> When your agent needs to **do something**, not just answer, structured knowledge wins."
 
 ---
 
-## 대화 시나리오 (상세)
+## [1:15-1:30] How it Works
 
-### 화면: Session Ready
+### Screen 5: Orchestration
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  How it Works: Orchestration                                        │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Session Ready: FinBot                                             │
-│   ═══════════════════════════════════════════════════════════════   │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                                                               │  │
+│  │  [Transcript] ──→ [Router] ──→ "attach memory_playbook"      │  │
+│  │                       │         (Router DECIDES)              │  │
+│  │                       ▼                                       │  │
+│  │         [Orchestrator ATTACHES to container.skills]           │  │
+│  │                       │                                       │  │
+│  │                       ▼                                       │  │
+│  │         [NEXT API call] ──→ Response with skill knowledge     │  │
+│  │                                                               │  │
+│  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
-│   📋 Brief                                                          │
-│   Fintech (Series B) • Head of Engineering • Technical Discovery    │
-│   Current Claude user (6 months) • Scaling issues                   │
+│  Two layers:                                                        │
+│  1. Orchestration: Router decides WHICH skill to attach            │
+│  2. Progressive disclosure: WITHIN the skill, only needed files    │
 │                                                                     │
-│   🔮 Likely Topics                                                  │
-│   1. Context window management (95%) ← flagged: "long conversations"│
-│   2. Token cost optimization (90%)                                  │
-│   3. Memory / state persistence (75%)                               │
-│                                                                     │
-│   📦 Skills                                                         │
-│   ✅ cdp_context_editing   (pre-attached — likely needed)           │
-│   ✅ fintech_patterns      (pre-attached — fintech customer)        │
-│   ○  cdp_memory            (ready if needed)                        │
-│   ○  pricing_guidance      (ready if needed)                        │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-### 질문 1: 애매한 문제 설명 → 맥락 유추
-
-**Transcript:**
-```
-[00:30] Sarah (Customer):
-"So yeah, we've been using Claude for about six months now, and it's 
-been great for the most part. But we're running into this... thing.
-
-Like, our users have these really long conversations — they'll ask 
-about their portfolio, then follow up with market questions, then 
-circle back to something they asked earlier.
-
-And Claude just... kind of loses track? Like, by message 15, it's 
-forgotten what we talked about in message 3. And we're burning 
-through tokens like crazy.
-
-We tried just cutting off the old messages but then users complain 
-that 'the AI doesn't remember anything.' [laughs nervously]
-
-I don't know, is there a... better way to handle this?"
-```
-
-**Copilot 분석:**
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  🧠 Context Analysis                                                │
-│  ───────────────────────────────────────────────────────────────    │
-│                                                                     │
-│  Signals detected:                                                  │
-│  • "long conversations" + "loses track" + "message 15"              │
-│  • "burning through tokens"                                         │
-│  • "tried cutting off old messages" = naive truncation              │
-│  • "doesn't remember anything" = user experience issue              │
-│                                                                     │
-│  🎯 Inferred problem:                                               │
-│  Context window management + token optimization                     │
-│  Current approach (truncation) not working                          │
-│                                                                     │
-│  ⚡ Using: cdp_context_editing (pre-attached)                       │
-│                                                                     │
-│  💡 Suggested Response                                              │
-│  ───────────────────────────────────────────────────────────────    │
-│                                                                     │
-│  "This is exactly what Context Editing is designed for.             │
-│                                                                     │
-│   Instead of naive truncation, you can:                             │
-│   1. Summarize older turns (keep meaning, reduce tokens)            │
-│   2. Extract key facts to preserve (portfolio preferences, etc.)    │
-│   3. Dynamically manage what stays in context                       │
-│                                                                     │
-│   Pattern we've seen with fintech:                                  │
-│   • Keep last 5 turns verbatim                                      │
-│   • Summarize turns 6-15                                            │
-│   • Extract persistent facts (risk tolerance, holdings)             │
-│   → 60-70% token reduction, better continuity"                      │
-│                                                                     │
-│  📄 Sources:                                                        │
-│  • cdp_context_editing/strategies.md                                │
-│  • fintech_patterns/long_conversation_handling.md                   │
-│                                                                     │
-│  💡 Follow-up to ask:                                               │
-│  "What's your average conversation length in turns?"                │
+│  Router DECIDES → Orchestrator ATTACHES → Claude loads on demand    │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**DevRel 응답:**
-> "Ah, this is a really common challenge — actually, we just shipped something specifically for this.
-> 
-> It's called **Context Editing**. Instead of just cutting off old messages, you can intelligently manage what stays in the context window.
-> 
-> So for your case: keep the last 5 turns verbatim, summarize turns 6 through 15, and extract key facts — like the user's risk tolerance or what stocks they mentioned — as persistent context.
-> 
-> We've seen fintech companies get 60-70% token reduction without losing conversation quality.
-> 
-> Quick question: what's your average conversation length? Like, how many turns typically?"
+### Narration (15s)
+
+> "How does dynamic loading work? Two layers.
+>
+> First, **orchestration**: Router decides *which skill* to attach. Orchestrator puts it in `container.skills`.
+>
+> Second, **progressive disclosure**: Within the attached skill, Claude loads only the files the conversation needs.
+>
+> The agent isn't the model — it's the orchestration. Deciding what knowledge to load, and when."
 
 ---
 
-### 질문 2: 구체적 기술 질문 + 숨겨진 우려
+## [1:30-1:43] Before vs After
 
-**Transcript:**
-```
-[02:00] Sarah:
-"Oh wow, that's interesting. So it's like... programmable summarization?
-
-Average is probably 15-20 turns, but power users go way longer.
-Like 40, 50 messages.
-
-[pause]
-
-Um, one thing though — we're in fintech, so there's compliance stuff.
-Like, we can't just... lose information? If a user said 'don't invest 
-in oil companies' in message 3, and we summarize that away, and then 
-Claude recommends Exxon in message 30... that's a problem.
-
-[nervous laugh]
-
-Our compliance team would kill me."
-```
-
-**Copilot 분석:**
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  🧠 Context Analysis                                                │
-│  ───────────────────────────────────────────────────────────────    │
-│                                                                     │
-│  Signals:                                                           │
-│  • "programmable summarization" = understanding the feature         │
-│  • "40, 50 messages" = heavy usage, token costs significant         │
-│  • [pause] + "compliance stuff" + "can't lose information"          │
-│  • "compliance team would kill me" = real blocker                   │
-│                                                                     │
-│  ⚠️ Pattern matched! (fintech_patterns)                             │
-│  "Compliance concern + data loss fear"                              │
-│  85% of fintech customers raise this                                │
-│                                                                     │
-│  🎯 Hidden concern:                                                 │
-│  Not just token cost — compliance risk of losing user preferences   │
-│                                                                     │
-│  ⚡ Using:                                                          │
-│  • cdp_context_editing (attached)                                   │
-│  • fintech_patterns (compliance handling)                           │
-│                                                                     │
-│  💡 Suggested Response                                              │
-│  ───────────────────────────────────────────────────────────────    │
-│                                                                     │
-│  "This is the exact concern we hear from every fintech customer.    │
-│   Here's how Context Editing handles it:                            │
-│                                                                     │
-│   You define what MUST be preserved — 'user constraints' bucket:    │
-│   • 'no oil companies' → extracted, never summarized away           │
-│   • Risk tolerance, restricted securities, preferences              │
-│                                                                     │
-│   These go into a 'persistent facts' section that always stays.     │
-│   Only the conversational fluff gets summarized.                    │
-│                                                                     │
-│   Pattern from similar fintech (Acme Wealth):                       │
-│   • They tag compliance-critical statements                         │
-│   • Those get extracted to persistent context automatically         │
-│   • Passed their SOC2 audit with this approach"                     │
-│                                                                     │
-│  📄 Sources:                                                        │
-│  • cdp_context_editing/persistent_facts.md                          │
-│  • fintech_patterns/compliance_handling.md                          │
-│  • case_studies/acme_wealth.md                                      │
-│                                                                     │
-│  💡 Proactive: Address compliance before she asks directly          │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**DevRel 응답:**
-> "This is the exact concern we hear from every fintech customer. You're not alone.
-> 
-> Here's how Context Editing handles it: you define what **must** be preserved. We call it the 'persistent facts' bucket.
-> 
-> So 'don't invest in oil companies' — that gets **extracted**, not summarized. It stays in context permanently until the user changes it. Risk tolerance, restricted securities, any compliance-critical preferences — same thing.
-> 
-> Only the conversational parts get compressed. 'How was your weekend?' — that can be summarized. 'Never recommend fossil fuels' — that's sacred.
-> 
-> Actually, we have another fintech customer — Acme Wealth — who implemented exactly this pattern. They tag compliance-critical statements, extract them automatically, and they **passed their SOC2 audit** with this approach.
-> 
-> Would it help if I connected you with their engineering lead?"
-
----
-
-### 질문 3 (Optional): 직접 Ask Copilot
-
-**DevRel types in Ask Copilot:**
-```
-"What's the token cost comparison for a 50-turn conversation 
-with vs without context editing?"
-```
-
-**Copilot Response:**
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  💡 Token Cost Comparison                                           │
-│  ───────────────────────────────────────────────────────────────    │
-│                                                                     │
-│  50-turn conversation (avg 200 tokens/turn):                        │
-│                                                                     │
-│  WITHOUT Context Editing:                                           │
-│  • Turn 50 context: ~10,000 tokens (full history)                   │
-│  • Total API calls: ~250,000 tokens (cumulative)                    │
-│  • Estimated cost: $7.50 (at Sonnet pricing)                        │
-│                                                                     │
-│  WITH Context Editing:                                              │
-│  • Turn 50 context: ~3,000 tokens (summarized + persistent)         │
-│  • Total API calls: ~85,000 tokens                                  │
-│  • Estimated cost: $2.55                                            │
-│  • Savings: ~66%                                                    │
-│                                                                     │
-│  ⚠️ Note: Actual savings vary by conversation type.                 │
-│  Financial conversations with many numbers may compress less.       │
-│                                                                     │
-│  📄 Source: pricing_guidance/context_editing_roi.md                 │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**DevRel:**
-> "Just pulled the numbers. For a 50-turn conversation, you're looking at roughly 66% token savings. That's $7.50 down to $2.55 per conversation at Sonnet pricing.
-> 
-> For 50,000 monthly active users with, let's say, 10 conversations each — that's real money."
-
----
-
-## Post-call: META-SKILL 학습
+### Screen 6: Comparison
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                                                                     │
-│   META-SKILL: Suggested Updates                                     │
-│   ═══════════════════════════════════════════════════════════════   │
-│                                                                     │
-│   📝 Update 1: fintech_patterns/compliance_handling.md              │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │  + "Compliance concern always comes with nervous laugh"     │   │
-│   │  + Phrase "compliance team would kill me" = serious blocker │   │
-│   │  + Lead with SOC2 audit success story (Acme Wealth)         │   │
-│   └─────────────────────────────────────────────────────────────┘   │
-│   [Review] [Approve]                                                │
-│                                                                     │
-│   📝 Update 2: cdp_context_editing/use_cases.md                     │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │  + Fintech: 40-50 turn conversations common for power users │   │
-│   │  + Key requirement: compliance-critical fact preservation   │   │
-│   └─────────────────────────────────────────────────────────────┘   │
-│   [Review] [Approve]                                                │
-│                                                                     │
-│   📝 Signal to Product: cdp_memory                                  │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │  Customer showed interest in cross-conversation persistence │   │
-│   │  "What if user comes back tomorrow?"                        │   │
-│   │  → Memory feature may be natural upsell                     │   │
-│   └─────────────────────────────────────────────────────────────┘   │
-│   [Flag to Product]                                                 │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+│  The Difference                                                     │
+├────────────────────────────────┬────────────────────────────────────┤
+│                                │                                    │
+│  WITHOUT org knowledge skills  │  WITH org knowledge skills         │
+│                                │                                    │
+│  ┌──────────────────────────┐  │  ┌──────────────────────────────┐  │
+│  │                          │  │  │                              │  │
+│  │  General answer          │  │  │  Org-specific answer         │  │
+│  │  (not grounded in YOUR   │  │  │                              │  │
+│  │   org's docs)            │  │  │  "Our memory_playbook has    │  │
+│  │                          │  │  │   the enablement steps —     │  │
+│  │  Missing org-specific    │  │  │   SDK patterns, caveats"     │  │
+│  │  enablement steps        │  │  │                              │  │
+│  │                          │  │  │  📄 Source: memory_playbook/ │  │
+│  │  ❌ No internal sources  │  │  │  ✓ Grounded, verifiable      │  │
+│  └──────────────────────────┘  │  └──────────────────────────────┘  │
+│                                │                                    │
+│  Claude is still capable —     │  Now grounded in YOUR team's docs  │
+│  just missing YOUR context     │                                    │
+│                                │                                    │
+└────────────────────────────────┴────────────────────────────────────┘
 ```
+
+### Narration (13s)
+
+> "The difference.
+>
+> Without your org's knowledge skills: Claude gives a general answer — still capable, but missing your specific context.
+>
+> With skills: org-specific answer, grounded in your team's playbooks. The agent **cites internal sources**."
 
 ---
 
-## [2:35-2:55] Post-call (10초)
+## [1:43-3:25] Demo
 
-### 화면 8: Call Note + 업데이트 제안
+### Screen 7 (1:43-2:00): Landing
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Session Ready: FinBot                                       [×] │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  📋 BRIEF                                                        │
+│  Fintech (Series B) · Head of Engineering · API user 6 months    │
+│                                                                  │
+│  📦 ATTACHED (by Prep Agent — baseline from customer brief)      │
+│  ✅ context_editing_guide                                        │
+│  ✅ fintech_patterns                                             │
+│                                                                  │
+│  📦 AVAILABLE (Router attaches dynamically)                      │
+│  ○  memory_playbook  ← Our guide for implementing Memory         │
+│  ○  pricing_guidance     (NOT the Memory feature itself)         │
+│  ○  interview_records ← Stores call transcripts for reference    │
+│                                                                  │
+│  These are CUSTOM skills our team created.                       │
+│  You'd package your own org's knowledge.                         │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Narration (17s)
+
+> "I built an Interview Copilot to demo this. Let me show you.
+>
+> I'm Sigrid, DevRel. Call with FinBot, a fintech startup.
+>
+> Prep Agent attached baseline skills from the customer brief. Router handles everything dynamic.
+>
+> `memory_playbook` is available — our implementation guide for the Memory feature. Memory is a platform feature. I'm showing how we package our enablement guidance as a skill, so reps can apply it correctly."
+
+---
+
+### Screen 8 (2:00-2:30): Dynamic Skill — KEY MOMENT
+
+```
+┌──────────────────────────────┬──────────────────────────────────────┐
+│      TRANSCRIPT              │  COPILOT                             │
+│                              │                                      │
+│  [Customer] 2:05 PM          │  ⚡ ROUTER DECISION                  │
+│  "Our conversations get      │  ┌────────────────────────────────┐  │
+│  really long. And users      │  │ Detected: cross-session topic  │  │
+│  come back the next day      │  │                                │  │
+│  expecting Claude to         │  │ Router DECIDES:                │  │
+│  remember what they said.    │  │ → attach memory_playbook       │  │
+│                              │  │                                │  │
+│  Is there a way to handle    │  │ I'm not attaching the Memory   │  │
+│  that?"                      │  │ feature — I'm attaching our    │  │
+│                              │  │ team's implementation guide.   │  │
+│                              │  │                                │  │
+│                              │  │ Confidence: 89%                │  │
+│                              │  └────────────────────────────────┘  │
+│                              │                                      │
+│                              │  📦 Skills for Next Call             │
+│                              │  ✅ context_editing_guide            │
+│                              │  ✅ fintech_patterns                 │
+│                              │  ✅ memory_playbook  ← NEW           │
+│                              │                                      │
+└──────────────────────────────┴──────────────────────────────────────┘
+```
+
+### Narration (30s) — SLOW DOWN
+
+> "Watch closely. This is the key moment.
+>
+> Sarah mentions 'come back the next day', 'remember what they said.'
+>
+> Router decides: attach `memory_playbook`. To be clear — I'm not attaching the Memory feature itself. I'm attaching our team's **implementation guide** for that feature.
+>
+> See 'Skills for Next Call' — now three skills. The answerer will have access to our Memory playbook.
+>
+> Router **decided which skill**. Now Claude will use **progressive disclosure** to load only the files it needs from that skill."
+
+---
+
+### Screen 9 (2:30-2:50): Response + SOURCES HIGHLIGHT
+
+```
+┌──────────────────────────────┬──────────────────────────────────────┐
+│      TRANSCRIPT              │  COPILOT                             │
+│                              │                                      │
+│  [Customer] 2:05 PM          │  💡 Suggested Response               │
+│  "...Is there a way to       │  ───────────────────────────────     │
+│  handle that?"               │                                      │
+│                              │  "Two things work together:          │
+│                              │                                      │
+│                              │  **Context Editing** — manage long   │
+│                              │  conversations within a session.     │
+│                              │                                      │
+│                              │  **Memory** — cross-session. Our     │
+│                              │  memory_playbook has the exact       │
+│                              │  enablement steps: SDK integration,  │
+│                              │  client handlers, known caveats.     │
+│                              │                                      │
+│                              │  For fintech: compliance-critical    │
+│                              │  info should persist in Memory."     │
+│                              │                                      │
+│                              │  ┌────────────────────────────────┐  │
+│                              │  │ 📄 SOURCES                     │  │
+│                              │  │ ════════════════════════════   │  │
+│                              │  │ • context_editing_guide/       │  │
+│                              │  │   SKILL.md                     │  │
+│                              │  │   "60-70% token reduction..."  │  │
+│                              │  │                                │  │
+│                              │  │ • memory_playbook/SKILL.md     │  │
+│                              │  │   "Cross-session persistence   │  │
+│                              │  │    for user preferences..."    │  │
+│                              │  │                                │  │
+│                              │  │ • fintech_patterns/            │  │
+│                              │  │   compliance.md                │  │
+│                              │  └────────────────────────────────┘  │
+│                              │                                      │
+└──────────────────────────────┴──────────────────────────────────────┘
+```
+
+### Narration (20s) — EMPHASIZE SOURCES
+
+> "Now look at the response.
+>
+> It combines three skills. But here's the key — look at **Sources**.
+>
+> Every claim traces to a specific file with a quoted excerpt. This is the difference between 'sounds right' and '**provably right**.'
+>
+> Three teams' knowledge, one conversation, verifiable."
+
+---
+
+### Screen 10 (2:50-3:25): Post-call
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│  Post-call: Skill Update Proposal                                  │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │  📁 Interview Archived                                     │    │
+│  │  interview_records/learnings/2025-12-14_finbot.md          │    │
+│  │                                          [View in Skills]  │    │
+│  └────────────────────────────────────────────────────────────┘    │
+│                                                                    │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  fintech_patterns · add_pattern                              │  │
+│  │                                                              │  │
+│  │  ### Memory + Compliance Pattern                             │  │
+│  │  For fintech: compliance-critical data should persist        │  │
+│  │  in Memory, not just summarized in Context Editing.          │  │
+│  │                                                              │  │
+│  │                                   [Approve]  [Dismiss]       │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+│  ─────────────────────────────────────────────────────────────     │
+│                                                                    │
+│  Approve → App saves to learnings/ → In production: PR workflow   │
+│                                                                    │
+│  Platform: container.skills + code_execution                       │
+│  My app: Orchestration, state, UI, Git integration                 │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### Narration (35s)
+
+> "After the call, two things happen.
+>
+> First, the full interview is automatically archived to `interview_records` — you saw it in the available skills. It stores complete call transcripts for future reference.
+>
+> Second, PostCall Agent proposes skill updates. It detected a pattern: fintech + Memory = emphasize compliance persistence.
+>
+> When I click Approve, the app saves this learning to the skill's `learnings/` folder. In production, you'd wire this to a GitHub PR workflow for team review.
+>
+> To be clear: **Platform provides the primitives** — `container.skills`, `code_execution`. **My app provides everything else** — orchestration, state management, this UI."
+
+---
+
+## [3:25-4:15] How to Build
+
+### Screen 11 (3:25-3:40): Step 1 — Package Your Skills
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  Step 1: Package Your Skills                                        │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Post-call                                                         │
-│   ═══════════════════════════════════════════════════════════════   │
+│  skills/context_editing_guide/SKILL.md                              │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  ---                                                          │  │
+│  │  name: context-editing-guide                                  │  │
+│  │  description: Managing context window, token optimization,    │  │
+│  │               summarization strategies for long conversations │  │
+│  │  ---                                                          │  │
+│  │                                                               │  │
+│  │  # Context Editing Guide                                      │  │
+│  │                                                               │  │
+│  │  ## When to Use                                               │  │
+│  │  - Questions about managing long conversations                │  │
+│  │  - Token cost concerns                                        │  │
+│  │  - "Context window filling up"                                │  │
+│  │                                                               │  │
+│  │  ## Key Pattern                                               │  │
+│  │  Turns 1-5:   Keep verbatim (recent context)                  │  │
+│  │  Turns 6-15:  Summarize (compressed context)                  │  │
+│  │  Persistent:  Extracted facts (always present)                │  │
+│  │                                                               │  │
+│  │  ## Token Savings                                             │  │
+│  │  - Typical reduction: 60-70% for 20+ turn conversations       │  │
+│  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
-│   📋 Call Note (auto-generated)                                     │
-│   Topics: Architecture ✓, Roadmap ✓, Compliance ✓                   │
-│   Outcome: Deep-dive scheduled                                      │
-│                                                                     │
-│   🔄 Suggested Skill Update                                         │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │  patterns/fintech.md                                        │   │
-│   │  + "compliance + pause" → on-prem concern (NEW pattern)     │   │
-│   └─────────────────────────────────────────────────────────────┘   │
-│   [Review] [Approve] [Dismiss]                                      │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**내레이션**:
-> "Call ends. Auto-generated note. And a **suggested skill update** — new pattern detected.
-> 
-> Human reviews, approves or dismisses. The playbook evolves."
-
----
-
-## [2:55-4:25] How to Build + Architecture (통합)
-
-### 화면 9 (2:55-3:25): Skill 구조
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                                                                     │
-│   Building Skills: File Structure                                   │
-│   ═══════════════════════════════════════════════════════════════   │
-│                                                                     │
-│   skills/                                                           │
-│   ├── architecture/                                                 │
-│   │   ├── SKILL.md           ← Entry point (name, description)     │
-│   │   ├── dataflow.md        ← Technical content                   │
-│   │   └── faq.md                                                   │
-│   │                                                                 │
-│   ├── roadmap/                                                      │
-│   │   ├── SKILL.md                                                 │
-│   │   ├── streaming.md       ← Feature timelines                   │
-│   │   └── policy.md          ← "Dates subject to change" template  │
-│   │                                                                 │
-│   └── security/                                                     │
-│       ├── SKILL.md                                                 │
-│       ├── compliance.md      ← SOC2, GDPR, etc.                    │
-│       └── onprem.md          ← Hybrid architecture details         │
-│                                                                     │
-│   Each skill = curated knowledge + policy guidelines                │
+│  YAML frontmatter: name (≤64 chars), description (≤1024 chars)      │
+│  Body: Instructions Claude follows when skill is attached           │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "How do you build this?
-> 
-> Each skill is a folder. SKILL.md is the entry point — name and description.
-> Inside: your curated content plus policy guidelines.
-> 
-> Roadmap skill includes a policy template: 'dates subject to change.' That caveat comes from here."
+### Narration (15s)
+
+> "Step 1: Package your skills.
+>
+> Each skill has a `SKILL.md` with YAML frontmatter — name and description. The body contains instructions Claude follows when the skill is attached.
+>
+> Keep it focused: 'When to Use', key patterns, specific numbers. Claude reads this in the code-execution container."
 
 ---
 
-### 화면 10 (3:25-3:55): API — Pre-attach + Dynamic attach
+### Screen 12 (3:40-3:55): Step 2 — Build Your Router
 
 ```python
 ┌─────────────────────────────────────────────────────────────────────┐
+│  Step 2: Build Your Router (decides what skills to attach)          │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   API: Attaching Skills                                             │
-│   ═══════════════════════════════════════════════════════════════   │
+│  # Tool definition for structured output                            │
+│  ROUTER_TOOL = {                                                    │
+│      "name": "route_skills",                                        │
+│      "description": "Determine which skills to activate",           │
+│      "input_schema": {                                              │
+│          "type": "object",                                          │
+│          "properties": {                                            │
+│              "needs_skill": {"type": "boolean"},                    │
+│              "suggested_skills": {                                  │
+│                  "type": "array",                                   │
+│                  "items": {                                         │
+│                      "properties": {                                │
+│                          "domain": {"type": "string"},              │
+│                          "confidence": {"type": "number"}           │
+│                      }                                              │
+│                  }                                                  │
+│              },                                                     │
+│              "trigger_reason": {"type": "string"}                   │
+│          }                                                          │
+│      }                                                              │
+│  }                                                                  │
 │                                                                     │
-│   # Session start: pre-attach likely skills                         │
-│   response = client.messages.create(                                │
-│       model="claude-sonnet-4-5-20250514",                           │
-│       container={                                                   │
-│           "skills": [                                               │
-│               {"type": "custom", "skill_id": "skill_arch_xxx"},     │
-│               {"type": "custom", "skill_id": "skill_security_xxx"}, │
-│           ]                                                         │
-│       },                                                            │
-│       messages=[{"role": "user", "content": transcript}]            │
-│   )                                                                 │
+│  # Force structured output with tool_choice                         │
+│  response = client.messages.create(                                 │
+│      model="claude-haiku-4-5-20251001",                             │
+│      tools=[ROUTER_TOOL],                                           │
+│      tool_choice={"type": "tool", "name": "route_skills"},          │
+│      messages=[{"role": "user", "content": transcript}]             │
+│  )                                                                  │
 │                                                                     │
-│   # Mid-session: Router decides to attach roadmap                   │
-│   container["skills"].append(                                       │
-│       {"type": "custom", "skill_id": "skill_roadmap_xxx"}           │
-│   )                                                                 │
-│                                                                     │
-│   Progressive disclosure: Claude loads skill files only as needed   │
+│  # Router DECIDES: {"suggested_skills": ["memory_playbook"], ...}   │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "At the API level: you attach skills via `container.skills`.
-> 
-> At session start, you **pre-attach** the likely ones — architecture, security.
-> 
-> Mid-session, when the Router detects a roadmap question, it **dynamically adds** the roadmap skill.
-> 
-> Claude uses **progressive disclosure** — loads skill files only as needed, not everything upfront."
+### Narration (15s)
+
+> "Step 2: Build your Router.
+>
+> Use **Tool Use** for reliable structured output. Define a tool schema, force it with `tool_choice`, and Haiku returns a clean JSON decision.
+>
+> Router **decides** — but doesn't attach anything. That's the orchestrator's job."
 
 ---
 
-### 화면 11 (3:55-4:25): 3-Agent 아키텍처
+### Screen 13 (3:55-4:10): Step 3 — Attach Skills via API
 
-```
+```python
 ┌─────────────────────────────────────────────────────────────────────┐
+│  Step 3: Attach Skills via container.skills                         │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Architecture: 3-Agent System                                      │
-│   ═══════════════════════════════════════════════════════════════   │
+│  # Required beta headers                                            │
+│  BETAS = ["code-execution-2025-08-25", "skills-2025-10-02"]         │
 │                                                                     │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │                                                             │   │
-│   │   📝 SUMMARIZER                                             │   │
-│   │   • Tracks conversation state                               │   │
-│   │   • Extracts customer needs, predicts questions             │   │
-│   │                                                             │   │
-│   │              ↓                                              │   │
-│   │                                                             │   │
-│   │   🔍 ROUTER                                                 │   │
-│   │   • Analyzes transcript context (not keywords)              │   │
-│   │   • Decides: which skill to attach NOW?                     │   │
-│   │   • Pre-attach (session start) vs Dynamic (mid-call)        │   │
-│   │                                                             │   │
-│   │              ↓                                              │   │
-│   │                                                             │   │
-│   │   💡 ANSWERER                                               │   │
-│   │   • Calls Claude with attached skills                       │   │
-│   │   • Returns: answer + source + confidence + caveats         │   │
-│   │                                                             │   │
-│   └─────────────────────────────────────────────────────────────┘   │
+│  # Upload skill once (returns skill_id)                             │
+│  skill = client.beta.skills.create(                                 │
+│      display_title="Context Editing Guide",                         │
+│      files=files_from_dir("skills/context_editing_guide"),          │
+│      betas=BETAS                                                    │
+│  )                                                                  │
 │                                                                     │
-│   Skills attached dynamically based on conversation flow            │
+│  # Attach to messages call                                          │
+│  response = client.beta.messages.create(                            │
+│      model="claude-sonnet-4-5-20250929",                            │
+│      max_tokens=4096,                                               │
+│      betas=BETAS,                                                   │
+│      container={                                                    │
+│          "skills": [                                                │
+│              {"type": "custom", "skill_id": skill.id, "version": "latest"}  │
+│          ]                                                          │
+│      },                                                             │
+│      tools=[{"type": "code_execution_20250825", "name": "code_execution"}], │
+│      messages=[{"role": "user", "content": question}]               │
+│  )                                                                  │
+│                                                                     │
+│  # Skill files are now at /skills/{name}/ in the container          │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "The system uses three agents.
-> 
-> **Summarizer** tracks conversation state.
-> 
-> **Router** analyzes context — not keywords — and decides which skill to attach. It handles both pre-attachment at session start and dynamic attachment mid-call.
-> 
-> **Answerer** calls Claude with the attached skills, returns answers with sources and caveats.
-> 
-> Skills flow in based on conversation — that's the key architectural pattern."
+### Narration (15s)
+
+> "Step 3: Attach skills.
+>
+> Upload your skill folder once — you get a `skill_id`. Then pass it in `container.skills` with `code_execution` enabled.
+>
+> Skill files appear at `/skills/{name}/` in the container. Claude reads them on demand. **Progressive disclosure** — load only what the conversation needs."
 
 ---
 
-### 화면 12 (4:10-4:25): Skills vs RAG (간단히)
+### Screen 14 (4:10-4:15): Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  My Architecture                                                    │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Skills vs RAG                                                     │
-│   ═══════════════════════════════════════════════════════════════   │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                    ORCHESTRATOR (your app)                    │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│           │              │              │              │            │
+│           ▼              ▼              ▼              ▼            │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐  │
+│  │     Prep     │ │    Router    │ │   Answerer   │ │  PostCall  │  │
+│  │   (Haiku)    │ │   (Haiku)    │ │   (Sonnet)   │ │  (Haiku)   │  │
+│  └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘  │
 │                                                                     │
-│   RAG:    Retrieval                                                 │
-│   Skills: Retrieval + Policy + Procedures + Version Control         │
+│  This is MY design. Yours could be simpler — even a single agent.   │
+│  The pattern is what matters: orchestrator decides, skills execute. │
 │                                                                     │
-│   RAG returns doc chunks.                                           │
-│   Skills return verified, policy-safe answers.                      │
-│                                                                     │
-│   (You can use RAG inside a skill — they're complementary)          │
+│  Platform: container.skills + code_execution                        │
+│  You: orchestration + workflow                                      │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "Quick comparison: RAG is retrieval. Skills are retrieval **plus** policy, procedures, and version control.
-> 
-> They're complementary — you can use RAG inside a skill if needed."
+### Narration (5s)
+
+> "My app uses four agents. But yours could be simpler — even a single agent. The pattern is what matters: **orchestrator decides, container.skills executes**."
 
 ---
 
-## [4:25-5:00] Takeaway
+## [4:15-5:00] Wrap Up
 
-### 화면 13: 마무리
+### Screen 15: Wrap Up
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  Wrap Up                                                            │
+├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Building with Claude Skills                                       │
-│   ═══════════════════════════════════════════════════════════════   │
+│  Skills = modular capability bundles                                │
+│  Today's demo = org knowledge use case                              │
 │                                                                     │
-│   1. 📦 Package org knowledge as versioned playbooks                │
-│      skills/roadmap/SKILL.md + content + policy                     │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐   │
+│  │                  │  │                  │  │                  │   │
+│  │    GROUNDED      │  │    REVIEWABLE    │  │    REUSABLE      │   │
+│  │                  │  │                  │  │                  │   │
+│  │  Every answer    │  │  Skills in Git:  │  │  Package once,   │   │
+│  │  cites sources   │  │  PR review,      │  │  use across all  │   │
+│  │  from your docs  │  │  rollback, audit │  │  your agents     │   │
+│  │                  │  │                  │  │                  │   │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘   │
 │                                                                     │
-│   2. 🔍 Route intelligently                                         │
-│      Pre-attach likely skills, dynamic attach as needed             │
+│  ─────────────────────────────────────────────────────────────      │
 │                                                                     │
-│   3. ✅ Get verified answers                                        │
-│      Sources cited, caveats included, policy-safe                   │
+│  TRY IT / LEARN MORE                                                │
 │                                                                     │
-│   4. 🔄 Evolve with human review                                    │
-│      Suggested updates → approve → version bump                     │
+│  🔗 Code:  github.com/sigridjineth/interview-copilot                │
+│  🚀 Demo:  interview-copilot.vercel.app                             │
+│  📧 Questions:  sigrid.jinhyung@gmail.com                           │
 │                                                                     │
-│   ─────────────────────────────────────────────────────────────     │
+│  ─────────────────────────────────────────────────────────────      │
 │                                                                     │
-│   container.skills → right knowledge, right time, right way         │
+│  Platform: container.skills + code_execution                        │
+│  You: orchestration + workflow                                      │
+│  Together: agents with real capabilities                            │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**내레이션**:
-> "To build this yourself:
-> 
-> **One** — Package your org knowledge as versioned playbooks. Content plus policy.
-> 
-> **Two** — Route intelligently. Pre-attach likely skills, dynamically attach as the conversation flows.
-> 
-> **Three** — Get verified answers. Sources cited, caveats built in.
-> 
-> **Four** — Evolve with human review. The playbooks get better over time.
-> 
-> `container.skills` — right knowledge, right time, right way.
-> 
-> That's Claude Skills.
-> 
+### Narration (45s)
+
+> "Let me wrap up.
+>
+> Claude Skills are modular capability bundles. Today I showed one use case — org knowledge — but Skills can package any capability.
+>
+> Three operational wins: **Grounded** — every answer cites sources. **Reviewable** — Skills live in Git. **Reusable** — package once, use everywhere.
+>
+> If you want to dig deeper, all the code is on GitHub — I'll share the link. You can also try the live demo on Vercel right now.
+>
+> Questions? Reach out anytime — my email is on the screen. I'd love to hear what you build.
+>
+> Claude Skills provides the primitives. You build the orchestration. Together: agents with real capabilities.
+>
 > Thanks for watching."
 
 ---
 
-## 요약: 변경 사항
+## Changes Summary: v9 → v9.1
 
-| 항목 | 이전 | 최종 |
-|------|------|------|
-| **Skills attach 방식** | "추천만, 세션 중 attach" | **Pre-attach (likely) + Dynamic attach (as needed)** |
-| **Post-call** | 35초 | **20초로 축소** |
-| **How to Build** | 별도 없음 | **Architecture와 통합 (코드 포함)** |
-| **코드 스니펫** | 없음 | **Skill 구조 + API 호출 예시** |
-| **총 시간 배분** | 설명 heavy | **데모 + 빌드 방법 균형** |
+| Section | v9 | v9.1 |
+|---------|----|----|
+| Timeline | 4:45 | **5:00** (fits new slide) |
+| Screen 4.5 | Not present | **NEW: Why Skills, Not RAG?** |
+| Screen 2 | "...more coming" | **Removed** |
+| Screen 5 | "progressive disclosure through orchestration" | **Two distinct layers** explained |
+| Screen 7 | interview_records missing | **Added to AVAILABLE skills** |
+| Screen 10 | 2024-12-14 | **2025-12-14** |
+| Screen 14 | Fallback pattern explanation | **Removed** (cleaner message) |
+| Screen 15 | Token note only | **Added RAG vs Skills callback** |
 
 ---
+
+## Key Safety Phrases (v9.1)
+
+| Situation | Phrase |
+|-----------|--------|
+| Skills definition | "Skills are capability bundles. Org knowledge is ONE use case." |
+| Skills vs RAG | "RAG retrieves fragments. Skills guide actions." |
+| memory_playbook | "Memory is a platform feature. I'm showing how we package our enablement guidance as a skill." |
+| Without/With | "Claude is still capable — just missing YOUR org context." |
+| Platform vs App | "Platform provides primitives. My app provides everything else." |
+| Two layers | "Orchestration decides WHICH skill. Progressive disclosure works WITHIN the skill." |
+| Agent | "The agent isn't the model — it's the orchestration." |
+| Token | "You DO get context efficiency as a side benefit — but the real win is operational." |
+| Trust | "Like installing software, use Skills you trust and review." |
+| Sources | "Not 'sounds right' — provably right." |
+| PR workflow | "In production, you'd wire this to a GitHub PR workflow." |
+
+---
+
+## Technical Reference: API Integration
+
+### Required Beta Headers
+```python
+BETAS = ["code-execution-2025-08-25", "skills-2025-10-02"]
+```
+
+### Skill Upload
+```python
+skill = client.beta.skills.create(
+    display_title="My Skill",
+    files=files_from_dir("skills/my_skill"),
+    betas=BETAS
+)
+```
+
+### Skill Attachment
+```python
+response = client.beta.messages.create(
+    model="claude-sonnet-4-5-20250929",
+    betas=BETAS,
+    container={
+        "skills": [
+            {"type": "custom", "skill_id": skill.id, "version": "latest"}
+        ]
+    },
+    tools=[{"type": "code_execution_20250825", "name": "code_execution"}],
+    messages=[...]
+)
+```
+
+### SKILL.md Requirements
+- **name**: ≤64 chars, lowercase letters/numbers/hyphens only
+- **description**: ≤1024 chars, non-empty
+- **Body**: Instructions Claude follows when skill is attached
+
+---
+
+## Detailed Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  Interview Copilot Architecture                                                          │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────────────────────────┐ │
+│  │                              ORCHESTRATOR (FastAPI App)                              │ │
+│  │                                                                                      │ │
+│  │   SessionStore          SkillManager           State Machine                         │ │
+│  │   (in-memory)           (skills/*.md)          (prep→live→post)                     │ │
+│  └─────────────────────────────────────────────────────────────────────────────────────┘ │
+│           │                      │                       │                               │
+│           │                      │                       │                               │
+│  ═══════════════════════════════════════════════════════════════════════════════════════ │
+│  PHASE 1: PRE-CALL                                                                       │
+│  ═══════════════════════════════════════════════════════════════════════════════════════ │
+│                                                                                          │
+│   User Input                    ┌──────────────────────────────────────┐                 │
+│   "Call with FinBot,     ──────▶│           PREP AGENT                 │                 │
+│    fintech startup,             │           (Haiku)                    │                 │
+│    discussing scaling"          │                                      │                 │
+│                                 │  • Infers company context            │                 │
+│                                 │  • Generates brief                   │                 │
+│                                 │  • Recommends baseline skills        │                 │
+│                                 │                                      │                 │
+│                                 │  Output: PrepResult                  │                 │
+│                                 │  {                                   │                 │
+│                                 │    brief: "Series B fintech...",     │                 │
+│                                 │    topics: ["scaling", "cost"],      │                 │
+│                                 │    recommended_skills: [             │                 │
+│                                 │      "context_editing_guide",        │                 │
+│                                 │      "fintech_patterns"              │                 │
+│                                 │    ]                                 │                 │
+│                                 │  }                                   │                 │
+│                                 └──────────────────────────────────────┘                 │
+│                                              │                                           │
+│                                              ▼                                           │
+│                                 ┌──────────────────────────────────────┐                 │
+│                                 │  Session Created                     │                 │
+│                                 │  active_skills: [2 pre-attached]     │                 │
+│                                 │  available_skills: [remaining]       │                 │
+│                                 └──────────────────────────────────────┘                 │
+│                                                                                          │
+│  ═══════════════════════════════════════════════════════════════════════════════════════ │
+│  PHASE 2: LIVE CALL                                                                      │
+│  ═══════════════════════════════════════════════════════════════════════════════════════ │
+│                                                                                          │
+│   New Transcript Entry          ┌──────────────────────────────────────┐                 │
+│   "[Customer] Our users   ─────▶│           ROUTER AGENT               │                 │
+│    come back expecting          │           (Haiku)                    │                 │
+│    Claude to remember..."       │                                      │                 │
+│                                 │  Input:                              │                 │
+│                                 │  • Recent transcript (10 turns)      │                 │
+│                                 │  • Current active_skills             │                 │
+│                                 │  • Available skill descriptions      │                 │
+│                                 │                                      │                 │
+│                                 │  Tool: route_skills                  │                 │
+│                                 │  tool_choice: forced                 │                 │
+│                                 │                                      │                 │
+│                                 │  Output: RouterDecision              │                 │
+│                                 │  {                                   │                 │
+│                                 │    needs_skill: true,                │                 │
+│                                 │    suggested_skills: [               │                 │
+│                                 │      {domain: "memory_playbook",     │                 │
+│                                 │       confidence: 0.89}              │                 │
+│                                 │    ],                                │                 │
+│                                 │    detected_question: "How to...",   │                 │
+│                                 │    trigger_reason: "cross-session"   │                 │
+│                                 │  }                                   │                 │
+│                                 └──────────────────────────────────────┘                 │
+│                                              │                                           │
+│                                              │ if needs_skill == true                    │
+│                                              ▼                                           │
+│                          ┌───────────────────────────────────────────────┐               │
+│                          │              ORCHESTRATOR LOGIC               │               │
+│                          │                                               │               │
+│                          │  1. Update session.active_skills              │               │
+│                          │     active_skills.append("memory_playbook")   │               │
+│                          │                                               │               │
+│                          │  2. Log skill activation                      │               │
+│                          │     skill_fired_log.append(SkillFiredEvent)   │               │
+│                          │                                               │               │
+│                          │  3. Prepare container.skills config           │               │
+│                          │     skills_config = [                         │               │
+│                          │       {type: "custom",                        │               │
+│                          │        skill_id: "...",                       │               │
+│                          │        version: "latest"}                     │               │
+│                          │     ]                                         │               │
+│                          └───────────────────────────────────────────────┘               │
+│                                              │                                           │
+│                                              ▼                                           │
+│                                 ┌──────────────────────────────────────┐                 │
+│                                 │          ANSWERER AGENT              │                 │
+│                                 │          (Sonnet)                    │                 │
+│                                 │                                      │                 │
+│                                 │  API Call:                           │                 │
+│                                 │  client.beta.messages.create(        │                 │
+│                                 │    model="claude-sonnet-4-5",        │                 │
+│                                 │    betas=["code-execution-...",      │                 │
+│                                 │           "skills-..."],             │                 │
+│                                 │    container={                       │                 │
+│                                 │      "skills": skills_config  ◀──────│── Skills API   │
+│                                 │    },                                │                 │
+│                                 │    tools=[{                          │                 │
+│                                 │      type: "code_execution_..."      │                 │
+│                                 │    }],                               │                 │
+│                                 │    tool_choice: "generate_answer"    │                 │
+│                                 │  )                                   │                 │
+│                                 │                                      │                 │
+│                                 │  ┌──────────────────────────────┐    │                 │
+│                                 │  │  Code Execution Container    │    │                 │
+│                                 │  │                              │    │                 │
+│                                 │  │  /skills/                    │    │                 │
+│                                 │  │  ├─ context_editing_guide/   │    │                 │
+│                                 │  │  │   └─ SKILL.md ◀── read    │    │                 │
+│                                 │  │  ├─ memory_playbook/         │    │                 │
+│                                 │  │  │   └─ SKILL.md ◀── read    │    │                 │
+│                                 │  │  └─ fintech_patterns/        │    │                 │
+│                                 │  │      └─ compliance.md ◀─ read│    │                 │
+│                                 │  │                              │    │                 │
+│                                 │  │  Progressive Disclosure:     │    │                 │
+│                                 │  │  Only files needed for this  │    │                 │
+│                                 │  │  specific question are read  │    │                 │
+│                                 │  └──────────────────────────────┘    │                 │
+│                                 │                                      │                 │
+│                                 │  Output: AnswerDraft                 │                 │
+│                                 │  {                                   │                 │
+│                                 │    headline: "Two features...",      │                 │
+│                                 │    solutions: [...],                 │                 │
+│                                 │    answer: "Context Editing for...", │                 │
+│                                 │    sources: [                        │                 │
+│                                 │      {file: "memory_playbook/...",   │                 │
+│                                 │       excerpt: "Cross-session..."}   │                 │
+│                                 │    ],                                │                 │
+│                                 │    confidence: 0.92                  │                 │
+│                                 │  }                                   │                 │
+│                                 └──────────────────────────────────────┘                 │
+│                                              │                                           │
+│                                              ▼                                           │
+│                                      ┌──────────────┐                                    │
+│                                      │   UI Panel   │                                    │
+│                                      │              │                                    │
+│                                      │  💡 Answer   │                                    │
+│                                      │  📄 Sources  │                                    │
+│                                      └──────────────┘                                    │
+│                                                                                          │
+│  ═══════════════════════════════════════════════════════════════════════════════════════ │
+│  PHASE 3: POST-CALL                                                                      │
+│  ═══════════════════════════════════════════════════════════════════════════════════════ │
+│                                                                                          │
+│   User clicks "End Call"        ┌──────────────────────────────────────┐                 │
+│              │                  │          POSTCALL AGENT              │                 │
+│              │                  │          (Haiku)                     │                 │
+│              └─────────────────▶│                                      │                 │
+│                                 │  Input:                              │                 │
+│                                 │  • Full transcript                   │                 │
+│                                 │  • skills_used from session          │                 │
+│                                 │  • skill_fired_log                   │                 │
+│                                 │                                      │                 │
+│                                 │  Output: PostCallResult              │                 │
+│                                 │  {                                   │                 │
+│                                 │    call_summary: "...",              │                 │
+│                                 │    outcome: "follow_up_scheduled",   │                 │
+│                                 │    topics_covered: [...],            │                 │
+│                                 │    customer_pain_points: [...],      │                 │
+│                                 │    skills_used: [...],               │                 │
+│                                 │    skills_helpful: [...],            │                 │
+│                                 │    skill_update_proposals: [         │                 │
+│                                 │      {                               │                 │
+│                                 │        skill_id: "fintech_patterns", │                 │
+│                                 │        update_type: "add_pattern",   │                 │
+│                                 │        content: "### Memory +...",   │                 │
+│                                 │        rationale: "Detected..."      │                 │
+│                                 │      }                               │                 │
+│                                 │    ]                                 │                 │
+│                                 │  }                                   │                 │
+│                                 └──────────────────────────────────────┘                 │
+│                                              │                                           │
+│                                              ▼                                           │
+│                          ┌───────────────────────────────────────────────┐               │
+│                          │           ARCHIVE & UPDATE FLOW               │               │
+│                          │                                               │               │
+│                          │  1. Archive Interview Record                  │               │
+│                          │     └─▶ skills/interview_records/learnings/   │               │
+│                          │         2025-12-14_finbot.md                  │               │
+│                          │                                               │               │
+│                          │  2. User reviews proposals                    │               │
+│                          │     ┌────────────────────────────────┐        │               │
+│                          │     │  [Approve]  ──▶  Save to       │        │               │
+│                          │     │                 learnings/     │        │               │
+│                          │     │                                │        │               │
+│                          │     │  [Dismiss]  ──▶  Skip          │        │               │
+│                          │     └────────────────────────────────┘        │               │
+│                          │                                               │               │
+│                          │  3. Production: PR workflow                   │               │
+│                          │     └─▶ GitHub PR for team review             │               │
+│                          └───────────────────────────────────────────────┘               │
+│                                                                                          │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│  LEGEND                                                                                  │
+│                                                                                          │
+│  ═══════  Phase boundary                                                                │
+│  ──────▶  Data flow                                                                     │
+│  ◀──────  API/Read operation                                                            │
+│                                                                                          │
+│  Platform provides:  container.skills + code_execution                                   │
+│  App provides:       Orchestrator, SessionStore, SkillManager, UI, State Machine        │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Runtime Breakdown
+
+| Section | Duration | Cumulative |
+|---------|----------|------------|
+| Title + Hook | 0:15 | 0:15 |
+| Skills = Capabilities | 0:12 | 0:27 |
+| Files + Git | 0:15 | 0:42 |
+| The Problem | 0:18 | 1:00 |
+| **Why Skills, Not RAG?** | **0:15** | **1:15** |
+| How it Works | 0:15 | 1:30 |
+| Before/After | 0:13 | 1:43 |
+| Landing | 0:17 | 2:00 |
+| Dynamic Skill | 0:30 | 2:30 |
+| Response + Sources | 0:20 | 2:50 |
+| Post-call | 0:35 | 3:25 |
+| Step 1: Package | 0:15 | 3:40 |
+| Step 2: Router | 0:15 | 3:55 |
+| Step 3: API | 0:15 | 4:10 |
+| Architecture | 0:05 | 4:15 |
+| Wrap Up | 0:45 | 5:00 |
+
+---
+
+## Pre-Recording Checklist
+
+### Must-Say Phrases
+- [ ] "Skills are capability bundles. Org knowledge is ONE use case." (Screen 2)
+- [ ] "RAG retrieves fragments. Skills guide actions." (Screen 4.5, 15)
+- [ ] "Memory is a platform feature. I'm showing our enablement guide." (Screen 7)
+- [ ] "Claude is still capable — just missing YOUR context" (Screen 6)
+- [ ] "Two layers: orchestration decides WHICH skill, progressive disclosure works WITHIN" (Screen 5)
+- [ ] "Not 'sounds right' — provably right" (Screen 9)
+- [ ] "Platform provides primitives. My app provides everything else." (Screen 10)
+- [ ] "You DO get context efficiency as a side benefit" (Screen 15)
+
+### Visual Checkpoints
+| Time | What | Why |
+|------|------|-----|
+| 0:05 | Problem hook | Emotional connection |
+| 0:20 | Platform vs Custom skills table | Framing |
+| 1:05 | RAG vs Skills comparison | Technical differentiation |
+| 2:10 | Router Decision panel | Key moment |
+| 2:40 | Sources with file paths + excerpts | Proof of grounding |
+| 2:55 | Interview Archived banner | META-SKILL feature |
+| 3:30 | SKILL.md code | Technical credibility |
+| 3:55 | container.skills API code | CDP integration |
+| 4:30 | "use Skills you trust" | Trust/review mention |
+
+---
+
+*Script v9.1 — Added Skills vs RAG, fixed interview_records context, removed fallback, clarified two-layer architecture*
+*Last updated: 2025-12-14*
