@@ -4,25 +4,111 @@
 
 {% block content %}
 <div class="landing-container" x-data="landingApp()">
-    <!-- Main Content - ChatGPT Style -->
+    <!-- Main Content - Claude Style -->
     <main class="chatgpt-main">
-        <!-- Persona Card -->
-        <div class="persona-card">
-            <div class="persona-header">
-                <div class="persona-avatar">S</div>
-                <div class="persona-info">
-                    <h2 class="persona-name">Sigrid</h2>
-                    <p class="persona-role">Anthropic Developer Relations</p>
+        <!-- Claude-style greeting -->
+        <div class="claude-greeting">
+            <svg class="claude-icon" width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+            </svg>
+            <h1 class="claude-title">Ready for your call?</h1>
+        </div>
+
+        <!-- Two-column: Persona + Knowledge Base -->
+        <div class="landing-cards">
+            <!-- Persona Card -->
+            <div class="persona-card">
+                <div class="persona-header">
+                    <div class="persona-avatar">S</div>
+                    <div class="persona-info">
+                        <h2 class="persona-name">Sigrid</h2>
+                        <p class="persona-role">Anthropic Developer Relations</p>
+                    </div>
+                </div>
+                <div class="persona-details">
+                    <p><strong>Role:</strong> Developer Relations IC</p>
+                    <p><strong>Mission:</strong> Help developers build better with Claude</p>
                 </div>
             </div>
-            <div class="persona-details">
-                <p><strong>Role:</strong> Developer Relations IC</p>
-                <p><strong>Mission:</strong> Help developers build better with Claude</p>
+
+            <!-- Knowledge Base Card -->
+            <a href="/skills" class="knowledge-card">
+                <div class="knowledge-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+                    </svg>
+                    <span class="knowledge-title">Knowledge Base</span>
+                    <svg class="knowledge-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </div>
+                <div class="knowledge-stats">
+                    <span class="stat-item">
+                        <span class="stat-icon">📘</span>
+                        <span>5 Skills</span>
+                    </span>
+                    <span class="stat-divider">·</span>
+                    <span class="stat-item git-sync">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="4"/>
+                            <line x1="1.05" y1="12" x2="7" y2="12"/>
+                            <line x1="17.01" y1="12" x2="22.96" y2="12"/>
+                        </svg>
+                        <span>Git synced</span>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Today's Calls from Calendar -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <!-- Google Calendar Logo -->
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#4285F4" d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10z" opacity="0"/>
+                    <path fill="#4285F4" d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+                    <path fill="#FFFFFF" d="M18 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/>
+                    <path fill="#EA4335" d="M6 4h12v3H6z"/>
+                    <path fill="#4285F4" d="M8 9h2v2H8zm0 3h2v2H8zm0 3h2v2H8zm3-6h2v2h-2zm0 3h2v2h-2zm0 3h2v2h-2zm3-6h2v2h-2zm0 3h2v2h-2z"/>
+                    <path fill="#FBBC04" d="M17 4h1a2 2 0 0 1 2 2v1h-3V4z"/>
+                    <path fill="#34A853" d="M4 7h3v3H4z" opacity="0"/>
+                    <circle fill="#EA4335" cx="8" cy="4" r="1"/>
+                    <circle fill="#EA4335" cx="16" cy="4" r="1"/>
+                </svg>
+                <span>Today's Calls</span>
+                <span class="calendar-source">from Google Calendar</span>
+            </div>
+            <div class="calendar-events">
+                <template x-for="event in calendarEvents" :key="event.id">
+                    <div class="calendar-event" @click="selectEvent(event)" :class="{ 'selected': selectedEventId === event.id }">
+                        <div class="event-time" x-text="event.time"></div>
+                        <div class="event-details">
+                            <div class="event-title" x-text="event.company"></div>
+                            <div class="event-attendee">
+                                <span x-text="event.attendee"></span>
+                                <span class="event-role" x-text="'· ' + event.role"></span>
+                            </div>
+                            <div class="event-tags">
+                                <template x-for="tag in event.tags" :key="tag">
+                                    <span class="event-tag" x-text="tag"></span>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="event-action">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
 
-        <!-- Title -->
-        <h1 class="chatgpt-title">What's on the agenda today?</h1>
+        <!-- Divider -->
+        <div class="section-divider">
+            <span>or describe your call</span>
+        </div>
 
         <!-- Input Area -->
         <div class="chatgpt-input-container">
@@ -39,19 +125,10 @@
                 ></textarea>
 
                 <div class="chatgpt-input-footer">
-                    <!-- Left side: thinking mode -->
-                    <div class="thinking-toggle" @click="thinkingMode = !thinkingMode">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M12 6v6l4 2"/>
-                        </svg>
-                        <span x-text="thinkingMode ? 'Deep thinking' : 'Light thinking'"></span>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </div>
+                    <!-- Spacer -->
+                    <div></div>
 
-                    <!-- Right side: submit button -->
+                    <!-- Submit button -->
                     <button
                         type="submit"
                         class="chatgpt-submit"
@@ -65,6 +142,38 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Quick action buttons - Claude style -->
+        <div class="quick-actions">
+            <button class="quick-action-btn" @click="fillTemplate('technical')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 18l2-2v-3"/>
+                    <path d="M8 18l-2-2v-3"/>
+                    <rect x="2" y="4" width="20" height="8" rx="2"/>
+                </svg>
+                Technical
+            </button>
+            <button class="quick-action-btn" @click="fillTemplate('pricing')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                Pricing
+            </button>
+            <button class="quick-action-btn" @click="fillTemplate('security')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Security
+            </button>
+            <button class="quick-action-btn" @click="fillTemplate('roadmap')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18"/>
+                    <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                </svg>
+                Roadmap
+            </button>
         </div>
 
         <!-- Subtle hint -->
@@ -103,13 +212,22 @@
                 <div class="result-section">
                     <h3>Skills</h3>
                     <div class="skill-status-list">
-                        <template x-for="skill in prepResult?.recommended_skills || []" :key="skill">
+                        <!-- Pre-attached (first 2) -->
+                        <template x-for="(skill, index) in (prepResult?.recommended_skills || []).slice(0, 2)" :key="'attached-' + skill">
                             <div class="skill-status-item attached">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M20 6L9 17l-5-5"/>
                                 </svg>
                                 <span x-text="skill"></span>
                                 <span class="skill-note">pre-attached</span>
+                            </div>
+                        </template>
+                        <!-- Ready if needed (rest) -->
+                        <template x-for="skill in (prepResult?.recommended_skills || []).slice(2)" :key="'ready-' + skill">
+                            <div class="skill-status-item available">
+                                <span class="skill-circle"></span>
+                                <span x-text="skill"></span>
+                                <span class="skill-note">ready if needed</span>
                             </div>
                         </template>
                     </div>
@@ -146,12 +264,77 @@
 function landingApp() {
     return {
         context: '',
-        thinkingMode: false,
         prepResult: null,
         showResult: false,
         loading: false,
         entering: false,
         error: null,
+        selectedEventId: null,
+
+        // Mock calendar events (Google Calendar integration)
+        calendarEvents: [
+            {
+                id: 1,
+                time: '2:00 PM',
+                company: 'FinBot',
+                attendee: 'Sarah Chen',
+                role: 'Head of Engineering',
+                tags: ['Technical Discovery', 'Existing Customer'],
+                context: `Call with FinBot (Series B fintech startup). Sarah Chen, Head of Engineering. Ex-Stripe, 8 years building payment systems.
+
+They've been using Claude API for 6 months for their AI-powered financial advisor chatbot (50K+ retail investors).
+
+Pain points flagged:
+- Long conversations (20-50 turns) causing token costs to explode
+- Context window filling up, Claude "forgets" earlier messages
+- Tried naive truncation but users complain AI doesn't remember
+- Compliance concern: can't lose user preferences like "no oil stocks"
+
+Looking for: Better way to manage long conversations while keeping costs reasonable.`
+            },
+            {
+                id: 2,
+                time: '4:30 PM',
+                company: 'MedAssist AI',
+                attendee: 'Dr. James Park',
+                role: 'CTO',
+                tags: ['Initial Call', 'Healthcare'],
+                context: `Initial discovery call with MedAssist AI (seed-stage health tech). Dr. James Park, CTO and co-founder.
+
+Building an AI assistant for clinical documentation - helping doctors write notes faster.
+
+Key concerns likely:
+- HIPAA compliance
+- Accuracy requirements (medical terminology)
+- Integration with existing EHR systems
+- On-premise deployment options`
+            }
+        ],
+
+        selectEvent(event) {
+            this.selectedEventId = event.id;
+            this.context = event.context;
+            // Auto-resize textarea
+            this.$nextTick(() => {
+                this.autoResize();
+                // Auto-start session prep
+                this.startSession();
+            });
+        },
+
+        fillTemplate(type) {
+            const templates = {
+                technical: 'Call about technical architecture and API integration. The customer wants to discuss system design, data flow, and best practices for building with Claude.',
+                pricing: 'Call to discuss pricing plans, costs, and enterprise options. Customer is evaluating Claude for their team and needs to understand the pricing model.',
+                security: 'Security and compliance review call. Customer needs to understand SOC2 compliance, data handling, encryption, and enterprise security features.',
+                roadmap: 'Product roadmap discussion. Customer wants to know about upcoming features, timelines, and planned improvements to the Claude API.'
+            };
+            this.context = templates[type] || '';
+            this.$nextTick(() => {
+                this.autoResize();
+                this.$refs.input.focus();
+            });
+        },
 
         autoResize() {
             const el = this.$refs.input;

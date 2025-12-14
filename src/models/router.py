@@ -10,6 +10,7 @@ class SkillDomain(str, Enum):
     CDP_SKILLS = "cdp_skills"
     FINTECH_PATTERNS = "fintech_patterns"
     PRICING_GUIDANCE = "pricing_guidance"
+    INTERVIEW_RECORDS = "interview_records"
 
 
 class SkillSuggestion(BaseModel):

@@ -7,6 +7,7 @@ from ..models import (
     RouterDecision,
     AnswerDraft,
     SummarizerState,
+    PostCallResult,
 )
 
 
@@ -48,6 +49,11 @@ class Session:
     # Cooldown tracking
     last_skill_fire: dict[str, datetime] = field(default_factory=dict)
 
+    # Post-call
+    ended_at: datetime | None = None
+    post_call_result: PostCallResult | None = None
+    archive_path: str | None = None  # Path to interview_records archive
+
 
 class SessionStore:
     """In-memory session storage."""
@@ -58,11 +64,18 @@ class SessionStore:
     def create(self, company: str, prep_result: PrepResult | None = None) -> Session:
         """Create a new session."""
         session_id = str(uuid.uuid4())[:8]
+
+        # Pre-attach top 2 skills, rest stay as recommended
+        all_recommended = prep_result.recommended_skills if prep_result else []
+        pre_attached = all_recommended[:2]  # First 2 are pre-attached
+        remaining = all_recommended  # All stay in recommended for reference
+
         session = Session(
             id=session_id,
             company=company,
             prep_result=prep_result,
-            recommended_skills=prep_result.recommended_skills if prep_result else [],
+            active_skills=pre_attached,
+            recommended_skills=remaining,
         )
         self._sessions[session_id] = session
         return session

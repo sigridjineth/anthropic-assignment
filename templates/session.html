@@ -4,60 +4,113 @@
 
 {% block content %}
 <div class="session-container" x-data="sessionApp('{{ session_id }}')">
-    <!-- Header -->
+    <!-- Header - Claude style -->
     <header class="header">
         <div class="header-left">
             <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--accent);">
+                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+                </svg>
                 <div class="header-persona-avatar">S</div>
                 <span>Sigrid</span>
             </div>
             <span class="session-name">| {{ company }}</span>
         </div>
-        <a href="/" class="btn-secondary">End Call</a>
+        <button @click="endCall" class="btn-secondary" :disabled="endingCall">
+            <span x-show="!endingCall">End Call</span>
+            <span x-show="endingCall" class="loading-spinner"></span>
+        </button>
     </header>
 
     <!-- Main Content -->
     <main class="session-main">
         <!-- Left Panel: Transcript -->
         <div class="panel transcript-panel">
-            <div class="panel-header">
-                <h2>Transcript</h2>
-            </div>
-
-            <!-- Add Entry Form -->
-            <div class="add-entry-form">
-                <div class="form-row">
-                    <select x-model="newEntry.speaker" class="speaker-select">
-                        <option value="customer">Customer</option>
-                        <option value="sigrid">Sigrid</option>
-                    </select>
+            <!-- Simple header -->
+            <div class="transcript-header-simple">
+                <div class="transcript-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span>Live Transcript</span>
                 </div>
-                <textarea
-                    x-model="newEntry.text"
-                    placeholder="Enter what was said..."
-                    rows="3"
-                    @keydown.meta.enter="addEntry"
-                    @keydown.ctrl.enter="addEntry"
-                ></textarea>
-                <button @click="addEntry" class="btn-primary" :disabled="loading || !newEntry.text.trim()">
-                    <span x-show="!loading">Add Entry</span>
-                    <span x-show="loading" class="loading-spinner"></span>
-                </button>
+                <div class="transcript-status">
+                    <span class="status-dot" :class="{ 'active': sttActive }"></span>
+                    <span class="status-time" x-text="displayDuration"></span>
+                </div>
             </div>
 
             <!-- Transcript Entries -->
-            <div class="transcript-entries">
+            <div class="transcript-entries" x-ref="transcriptList">
                 <template x-for="(entry, index) in state.transcript || []" :key="index">
-                    <div class="transcript-entry" :class="'speaker-' + entry.speaker">
-                        <div class="entry-header">
-                            <span class="speaker-badge" x-text="entry.speaker"></span>
+                    <div class="transcript-entry" :class="'speaker-' + entry.speaker" @click="toggleSpeaker(index)">
+                        <div class="entry-speaker-badge" :class="'badge-' + entry.speaker">
+                            <span x-text="entry.speaker === 'customer' ? 'C' : 'S'"></span>
+                        </div>
+                        <div class="entry-bubble">
+                            <p class="entry-text" x-text="entry.text"></p>
                             <span class="entry-time" x-text="formatTime(entry.timestamp)"></span>
                         </div>
-                        <p class="entry-text" x-text="entry.text"></p>
                     </div>
                 </template>
-                <div x-show="!state.transcript?.length" class="empty-state">
-                    <p>No transcript entries yet. Add the conversation as it happens.</p>
+
+                <!-- Listening indicator -->
+                <div class="transcript-entry listening" x-show="sttActive && newEntry.text" :class="'speaker-' + getNextSpeaker()">
+                    <div class="entry-speaker-badge" :class="'badge-' + getNextSpeaker()">
+                        <span x-text="getNextSpeaker() === 'customer' ? 'C' : 'S'"></span>
+                    </div>
+                    <div class="entry-bubble">
+                        <p class="entry-text listening-text" x-text="newEntry.text"></p>
+                        <span class="listening-indicator">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </span>
+                    </div>
+                </div>
+
+                <div x-show="!state.transcript?.length && !sttActive" class="empty-state">
+                    <p>Start recording to capture the conversation</p>
+                </div>
+            </div>
+
+            <!-- Bottom controls -->
+            <div class="transcript-controls">
+                <button
+                    @click="toggleSTT"
+                    class="btn-record-main"
+                    :class="{ 'recording': sttActive, 'unsupported': !sttSupported }"
+                    :disabled="!sttSupported"
+                >
+                    <span class="record-icon" x-show="!sttActive">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                        </svg>
+                    </span>
+                    <span class="record-pulse" x-show="sttActive"></span>
+                    <span x-text="sttActive ? 'Listening...' : 'Start Recording'"></span>
+                </button>
+
+                <!-- Manual input - always visible as fallback -->
+                <div class="manual-input">
+                    <input
+                        type="text"
+                        x-model="newEntry.text"
+                        :placeholder="sttActive ? 'Or type while recording...' : 'Type to add transcript...'"
+                        @keydown.enter="addEntry"
+                        class="manual-text-input"
+                    >
+                    <button
+                        @click="addEntry"
+                        class="btn-send"
+                        :disabled="loading || !newEntry.text.trim()"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -66,6 +119,10 @@
         <div class="panel copilot-panel">
             <div class="panel-header">
                 <h2>Copilot</h2>
+                <div class="claude-status" x-show="processingClaude">
+                    <span class="loading-spinner small"></span>
+                    <span>Claude thinking...</span>
+                </div>
             </div>
 
             <div class="copilot-content">
@@ -75,68 +132,113 @@
                     <p class="summary-text" x-text="state.summarizer_state?.summary"></p>
                 </div>
 
-                <!-- Skill Fired -->
-                <div class="copilot-section" x-show="state.skill_fired_log?.length">
-                    <h3>Skill Fired</h3>
-                    <template x-for="(event, index) in (state.skill_fired_log || []).slice(-3).reverse()" :key="index">
-                        <div class="skill-fired-item">
-                            <div class="skill-fired-header">
-                                <span class="skill-fired-icon">⚡</span>
-                                <span class="skill-fired-domains" x-text="event.domains.join(', ')"></span>
-                                <span class="skill-fired-confidence" x-text="Math.round(event.confidence * 100) + '%'"></span>
-                            </div>
-                            <p class="skill-fired-reason" x-text="event.trigger_reason"></p>
-                        </div>
-                    </template>
+                <!-- Skill Activated - Compact -->
+                <div class="copilot-section skills-compact" x-show="state.skill_fired_log?.length">
+                    <div class="skills-fired-inline">
+                        <span class="skills-fired-label">⚡ Active:</span>
+                        <template x-for="(event, index) in (state.skill_fired_log || []).slice(-1)" :key="index">
+                            <template x-for="domain in event.domains" :key="domain">
+                                <span class="skill-tag" :class="{ 'is-meta': state.skill_metadata?.[domain]?.is_meta }">
+                                    <span class="meta-dot" x-show="state.skill_metadata?.[domain]?.is_meta"></span>
+                                    <span x-text="state.skill_metadata?.[domain]?.name || domain"></span>
+                                </span>
+                            </template>
+                        </template>
+                    </div>
                 </div>
 
                 <!-- Active Skills -->
                 <div class="copilot-section">
-                    <h3>Active Skills</h3>
-                    <div class="skill-list">
-                        <template x-for="skill in state.active_skills || []" :key="skill">
-                            <span class="skill-tag skill-attached" x-text="skill"></span>
+                    <div class="skills-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <h3><span class="skills-label-active">ACTIVE</span> SKILLS</h3>
+                    </div>
+                    <div class="skill-checklist">
+                        <!-- Active skills (checked) with descriptions -->
+                        <template x-for="skill in state.active_skills || []" :key="'active-' + skill">
+                            <div class="skill-check-item active" :class="{ 'is-meta': state.skill_metadata?.[skill]?.is_meta }">
+                                <div class="skill-check-main">
+                                    <span class="skill-checkbox checked">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="meta-badge" x-show="state.skill_metadata?.[skill]?.is_meta">META</span>
+                                    <span class="skill-name" x-text="state.skill_metadata?.[skill]?.name || skill.replace(/_/g, ' ')"></span>
+                                </div>
+                                <p class="skill-item-desc" x-show="state.skill_metadata?.[skill]?.description" x-text="state.skill_metadata?.[skill]?.description"></p>
+                            </div>
                         </template>
-                        <template x-for="skill in (state.recommended_skills || []).filter(s => !(state.active_skills || []).includes(s))" :key="skill">
-                            <span class="skill-tag skill-recommended" x-text="skill"></span>
+                        <!-- Recommended but not active (unchecked) -->
+                        <template x-for="skill in (state.recommended_skills || []).filter(s => !(state.active_skills || []).includes(s))" :key="'rec-' + skill">
+                            <div class="skill-check-item available" :class="{ 'is-meta': state.skill_metadata?.[skill]?.is_meta }">
+                                <div class="skill-check-main">
+                                    <span class="skill-checkbox"></span>
+                                    <span class="meta-badge muted" x-show="state.skill_metadata?.[skill]?.is_meta">META</span>
+                                    <span class="skill-name" x-text="state.skill_metadata?.[skill]?.name || skill.replace(/_/g, ' ')"></span>
+                                </div>
+                            </div>
                         </template>
-                        <span x-show="!state.active_skills?.length && !state.recommended_skills?.length" class="no-skills">No skills active</span>
+                        <span x-show="!state.active_skills?.length && !state.recommended_skills?.length" class="no-skills">No skills loaded</span>
+                    </div>
+                    <!-- Router recommendation -->
+                    <div class="router-recommendation" x-show="state.router_decision?.suggested_skills?.length">
+                        <span class="router-label">[Router suggests:</span>
+                        <template x-for="suggestion in state.router_decision?.suggested_skills || []" :key="suggestion.domain">
+                            <span class="router-suggestion" x-text="'+' + suggestion.domain"></span>
+                        </template>
+                        <span class="router-label">]</span>
                     </div>
                 </div>
 
-                <!-- Suggested Answer -->
+                <!-- Suggested Answer - Prominent -->
                 <div class="copilot-section answer-section" x-show="state.current_answer">
-                    <h3>Suggested Answer</h3>
+                    <h3>💡 Suggested Response</h3>
                     <div class="answer-card">
-                        <p class="answer-text" x-text="state.current_answer?.answer"></p>
-
-                        <!-- Sources -->
-                        <div class="answer-sources" x-show="state.current_answer?.sources?.length">
-                            <h4>Sources</h4>
-                            <ul>
-                                <template x-for="source in state.current_answer?.sources || []" :key="source.file">
-                                    <li>
-                                        <span class="source-file" x-text="source.file"></span>
-                                        <span class="source-title" x-text="source.title" x-show="source.title"></span>
-                                    </li>
-                                </template>
-                            </ul>
+                        <!-- Headline -->
+                        <div class="answer-headline" x-show="state.current_answer?.headline">
+                            <p x-text="state.current_answer?.headline"></p>
                         </div>
 
-                        <!-- Caveats -->
-                        <div class="answer-caveats" x-show="state.current_answer?.caveats?.length">
-                            <h4>Notes</h4>
-                            <ul>
-                                <template x-for="caveat in state.current_answer?.caveats || []" :key="caveat">
-                                    <li x-text="caveat"></li>
-                                </template>
-                            </ul>
+                        <!-- Solutions - Key actionable items -->
+                        <div class="answer-solutions" x-show="state.current_answer?.solutions?.length">
+                            <template x-for="(solution, idx) in state.current_answer?.solutions || []" :key="idx">
+                                <div class="solution-item">
+                                    <div class="solution-action">
+                                        <span class="solution-bullet">→</span>
+                                        <span x-text="solution.action"></span>
+                                    </div>
+                                    <div class="solution-benefit" x-text="solution.benefit"></div>
+                                    <span class="solution-source" x-text="solution.source"></span>
+                                </div>
+                            </template>
                         </div>
 
-                        <!-- Confidence -->
-                        <div class="answer-confidence">
-                            <span>Confidence:</span>
-                            <span class="confidence-value" x-text="Math.round((state.current_answer?.confidence || 0) * 100) + '%'"></span>
+                        <!-- Full answer (collapsible) -->
+                        <div class="answer-full" x-show="state.current_answer?.answer">
+                            <details>
+                                <summary>Full response to say</summary>
+                                <p class="answer-text" x-text="state.current_answer?.answer"></p>
+                            </details>
+                        </div>
+
+                        <!-- Follow-ups -->
+                        <div class="answer-followups" x-show="state.current_answer?.followups?.length">
+                            <span class="followups-label">Ask next:</span>
+                            <template x-for="(followup, idx) in (state.current_answer?.followups || []).slice(0, 2)" :key="idx">
+                                <span class="followup-item" x-text="followup"></span>
+                            </template>
+                        </div>
+
+                        <!-- Confidence bar -->
+                        <div class="answer-meta">
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" :style="'width: ' + Math.round((state.current_answer?.confidence || 0) * 100) + '%'"></div>
+                            </div>
+                            <span class="confidence-label" x-text="Math.round((state.current_answer?.confidence || 0) * 100) + '% confidence'"></span>
                         </div>
                     </div>
                 </div>
@@ -161,9 +263,466 @@
         </div>
     </main>
 
+    <!-- End Call Loading Modal -->
+    <div class="end-call-modal" x-show="endingCall" x-cloak>
+        <div class="end-call-modal-content">
+            <div class="end-call-spinner"></div>
+            <h2>Generating Summary</h2>
+            <p>Analyzing call transcript and preparing insights...</p>
+            <div class="end-call-steps">
+                <div class="step active">
+                    <span class="step-dot"></span>
+                    <span>Processing transcript</span>
+                </div>
+                <div class="step">
+                    <span class="step-dot"></span>
+                    <span>Extracting key points</span>
+                </div>
+                <div class="step">
+                    <span class="step-dot"></span>
+                    <span>Generating recommendations</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Activation Toast -->
+    <div class="skill-toast" x-show="skillToast" x-cloak x-transition:enter="toast-enter" x-transition:leave="toast-leave">
+        <div class="skill-toast-content">
+            <span class="skill-toast-icon">⚡</span>
+            <div class="skill-toast-body">
+                <div class="skill-toast-header">
+                    <span class="meta-badge" x-show="skillToast?.isMeta">META</span>
+                    <span class="skill-toast-name" x-text="skillToast?.name"></span>
+                </div>
+                <p class="skill-toast-desc" x-text="skillToast?.description"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Error Toast -->
     <div class="error-toast" x-show="error" x-text="error" x-cloak></div>
 </div>
+
+<style>
+/* Compact Skills Inline */
+.skills-compact {
+    padding: 8px 0 !important;
+}
+
+.skills-fired-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.skills-fired-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.skill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.skill-tag.is-meta {
+    background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%);
+    color: #6366f1;
+}
+
+.meta-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #8b5cf6;
+}
+
+/* META Badge */
+.meta-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    color: white;
+    border-radius: 4px;
+    margin-right: 6px;
+}
+
+.meta-badge.muted {
+    background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+    color: #4c1d95;
+}
+
+/* Active Skills with descriptions */
+.skill-check-item {
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.skill-check-item:last-child {
+    border-bottom: none;
+}
+
+.skill-check-item.is-meta .skill-name {
+    color: #6366f1;
+}
+
+.skill-check-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.skill-item-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 4px 0 0 28px;
+    line-height: 1.4;
+}
+
+/* Answer Card - Prominent */
+.answer-section {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+    border: 1px solid #86efac;
+    border-radius: 12px;
+    padding: 16px !important;
+    margin-top: 12px;
+}
+
+.answer-section h3 {
+    color: #166534;
+    margin-bottom: 12px;
+}
+
+.answer-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.answer-headline {
+    margin-bottom: 16px;
+}
+
+.answer-headline p {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Solutions List */
+.answer-solutions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.solution-item {
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+}
+
+.solution-action {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.solution-bullet {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.solution-benefit {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-left: 20px;
+    margin-bottom: 6px;
+}
+
+.solution-source {
+    display: inline-block;
+    font-size: 10px;
+    color: #6366f1;
+    background: #ede9fe;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 20px;
+}
+
+/* Full answer collapsible */
+.answer-full {
+    margin-bottom: 12px;
+}
+
+.answer-full details {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.answer-full summary {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.answer-full summary:hover {
+    color: var(--text-primary);
+}
+
+.answer-full .answer-text {
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    border-top: 1px solid #e2e8f0;
+    margin: 0;
+}
+
+/* Follow-ups */
+.answer-followups {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.followups-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.followup-item {
+    font-size: 12px;
+    color: var(--accent);
+    background: #f0fdf4;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid #86efac;
+}
+
+/* Confidence bar */
+.answer-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.confidence-bar {
+    flex: 1;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.confidence-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Skill Toast Notification */
+.skill-toast {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast-enter {
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-leave {
+    animation: slideOut 0.3s ease-in;
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.skill-toast-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-width: 320px;
+}
+
+.skill-toast-content:has(.meta-badge) {
+    border-left-color: #8b5cf6;
+}
+
+.skill-toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.skill-toast-body {
+    flex: 1;
+}
+
+.skill-toast-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.skill-toast-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.skill-toast-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* End Call Modal */
+.end-call-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.end-call-modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 40px 48px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.end-call-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--bg-tertiary);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.end-call-modal-content h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.end-call-modal-content p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0 0 24px 0;
+}
+
+.end-call-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+}
+
+.end-call-steps .step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.end-call-steps .step.active {
+    color: var(--accent);
+}
+
+.step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+}
+
+.step.active .step-dot {
+    background: var(--accent);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -173,16 +732,326 @@ function sessionApp(sessionId) {
         sessionId: sessionId,
         state: {},
         newEntry: {
-            speaker: 'prospect',
+            speaker: 'customer',
             text: ''
         },
         question: '',
         loading: false,
         askLoading: false,
+        endingCall: false,
         error: null,
+        sessionStartTime: Date.now(),
+        durationInterval: null,
+        displayDuration: '0m 0s',
+
+        // STT (Speech-to-Text) state - ElevenLabs
+        sttSupported: true,
+        sttActive: false,
+        sttSocket: null,
+        sttStream: null,
+        sttAudioContext: null,
+        sttProcessor: null,
+        sttPartialText: '',
+        sttCommitTimeout: null,
+        sttLastPartialTime: 0,
+        sttAutoCommitTimer: null,
+        processingClaude: false,
+
+        // Skill toast notification
+        skillToast: null,
+        skillToastTimeout: null,
+        lastSkillFiredCount: 0,
 
         async init() {
             await this.fetchState();
+            this.lastSkillFiredCount = this.state.skill_fired_log?.length || 0;
+
+            // Update duration every second
+            this.durationInterval = setInterval(() => {
+                this.displayDuration = this.formatDuration();
+            }, 1000);
+        },
+
+        // Show skill activation toast
+        showSkillToast(domains) {
+            if (!domains || domains.length === 0) return;
+
+            const domain = domains[0]; // Show first skill
+            const metadata = this.state.skill_metadata?.[domain];
+
+            this.skillToast = {
+                name: metadata?.name || domain.replace(/_/g, ' '),
+                description: metadata?.description || 'Skill activated',
+                isMeta: metadata?.is_meta || false
+            };
+
+            // Auto-hide after 4 seconds
+            clearTimeout(this.skillToastTimeout);
+            this.skillToastTimeout = setTimeout(() => {
+                this.skillToast = null;
+            }, 4000);
+        },
+
+        // Check for new skill activations
+        checkNewSkillActivation(newState) {
+            const newCount = newState.skill_fired_log?.length || 0;
+            if (newCount > this.lastSkillFiredCount) {
+                // New skill was fired
+                const latestEvent = newState.skill_fired_log[newCount - 1];
+                this.showSkillToast(latestEvent.domains);
+            }
+            this.lastSkillFiredCount = newCount;
+        },
+
+        formatDuration() {
+            const elapsed = Math.floor((Date.now() - this.sessionStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            return `${mins}m ${secs}s`;
+        },
+
+        // Auto-detect next speaker (alternate from last)
+        getNextSpeaker() {
+            const transcript = this.state.transcript || [];
+            if (transcript.length === 0) return 'customer';
+            const lastSpeaker = transcript[transcript.length - 1].speaker;
+            return lastSpeaker === 'customer' ? 'sigrid' : 'customer';
+        },
+
+        // Toggle speaker on click (for corrections)
+        async toggleSpeaker(index) {
+            const entry = this.state.transcript[index];
+            if (!entry) return;
+            const newSpeaker = entry.speaker === 'customer' ? 'sigrid' : 'customer';
+            this.state.transcript[index].speaker = newSpeaker;
+        },
+
+        async toggleSTT() {
+            if (this.sttActive) {
+                await this.stopSTT();
+            } else {
+                await this.startSTT();
+            }
+        },
+
+        async startSTT() {
+            try {
+                // 1. Get token from backend
+                const tokenRes = await fetch('/api/stt/token');
+                if (!tokenRes.ok) {
+                    const err = await tokenRes.json();
+                    throw new Error(err.detail || 'Failed to get STT token');
+                }
+                const { token } = await tokenRes.json();
+
+                // 2. Get microphone access
+                this.sttStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true }
+                });
+
+                // 3. Connect to ElevenLabs WebSocket
+                const wsUrl = `wss://api.elevenlabs.io/v1/speech-to-text/realtime?token=${token}&model_id=scribe_v2_realtime&language_code=en&audio_format=pcm_16000&commit_strategy=vad&vad_silence_threshold_secs=0.8&vad_threshold=0.3`;
+                this.sttSocket = new WebSocket(wsUrl);
+
+                this.sttSocket.onopen = () => {
+                    console.log('ElevenLabs STT connected');
+                    this.sttActive = true;
+                    this.startAudioCapture();
+                };
+
+                this.sttSocket.onmessage = (event) => {
+                    const msg = JSON.parse(event.data);
+                    console.log('STT message:', msg);
+                    this.handleSTTMessage(msg);
+                };
+
+                this.sttSocket.onerror = (event) => {
+                    console.error('STT WebSocket error:', event);
+                    this.error = 'STT connection error';
+                    setTimeout(() => this.error = null, 3000);
+                    this.stopSTT();
+                };
+
+                this.sttSocket.onclose = () => {
+                    console.log('STT WebSocket closed');
+                    if (this.sttActive) {
+                        this.stopSTT();
+                    }
+                };
+
+            } catch (e) {
+                console.error('STT start error:', e);
+                this.error = e.message || 'Failed to start speech recognition';
+                setTimeout(() => this.error = null, 5000);
+                this.stopSTT();
+            }
+        },
+
+        startAudioCapture() {
+            this.sttAudioContext = new AudioContext({ sampleRate: 16000 });
+            const source = this.sttAudioContext.createMediaStreamSource(this.sttStream);
+
+            // Use ScriptProcessor for capturing PCM data
+            this.sttProcessor = this.sttAudioContext.createScriptProcessor(4096, 1, 1);
+
+            this.sttProcessor.onaudioprocess = (e) => {
+                if (!this.sttActive || this.sttSocket?.readyState !== WebSocket.OPEN) return;
+
+                const inputData = e.inputBuffer.getChannelData(0);
+
+                // Convert float32 to int16 PCM
+                const pcm16 = new Int16Array(inputData.length);
+                for (let i = 0; i < inputData.length; i++) {
+                    pcm16[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32768));
+                }
+
+                // Send as base64 - send ALL audio including silence for VAD to work
+                const base64 = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
+                this.sttSocket.send(JSON.stringify({
+                    message_type: "input_audio_chunk",
+                    audio_base_64: base64
+                }));
+            };
+
+            source.connect(this.sttProcessor);
+            this.sttProcessor.connect(this.sttAudioContext.destination);
+        },
+
+        handleSTTMessage(msg) {
+            switch (msg.message_type) {
+                case 'partial_transcript':
+                    // Show partial text as user speaks
+                    const newText = this.sttPartialText + msg.text;
+                    if (newText !== this.newEntry.text) {
+                        this.newEntry.text = newText;
+                        this.sttLastPartialTime = Date.now();
+
+                        // Reset auto-commit timer on new speech
+                        clearTimeout(this.sttAutoCommitTimer);
+                        this.sttAutoCommitTimer = setTimeout(() => {
+                            this.autoCommitTranscript();
+                        }, 2000); // 2 seconds of silence = auto-commit
+                    }
+                    break;
+
+                case 'committed_transcript':
+                case 'committed_transcript_with_timestamps':
+                    // Final transcript from ElevenLabs VAD
+                    const text = msg.text?.trim();
+                    if (text) {
+                        console.log('ElevenLabs committed:', text);
+                        clearTimeout(this.sttAutoCommitTimer);
+                        this.submitTranscriptEntry(text);
+                    }
+                    break;
+
+                case 'session_started':
+                    console.log('STT session started:', msg.session_id);
+                    break;
+
+                case 'error':
+                    console.error('STT error:', msg);
+                    this.error = msg.message || 'STT error';
+                    setTimeout(() => this.error = null, 3000);
+                    break;
+            }
+        },
+
+        // Auto-commit when user stops speaking (local fallback)
+        autoCommitTranscript() {
+            const text = this.newEntry.text?.trim();
+            if (text && text.length > 10) {
+                console.log('Auto-committing after silence:', text);
+                this.submitTranscriptEntry(text);
+            }
+        },
+
+        // Submit transcript entry and trigger Claude
+        async submitTranscriptEntry(text) {
+            if (!text || this.processingClaude) return;
+
+            const speaker = this.getNextSpeaker();
+
+            // Immediately add to local transcript for display
+            const newEntry = {
+                speaker: speaker,
+                text: text,
+                timestamp: new Date().toISOString()
+            };
+            if (!this.state.transcript) this.state.transcript = [];
+            this.state.transcript.push(newEntry);
+
+            // Clear partial text for next utterance
+            this.sttPartialText = '';
+            this.newEntry.text = '';
+
+            // Auto-scroll
+            this.$nextTick(() => {
+                const list = this.$refs.transcriptList;
+                if (list) list.scrollTop = list.scrollHeight;
+            });
+
+            // Now call Claude in background
+            this.processingClaude = true;
+            console.log('🤖 Calling Claude with transcript:', text);
+
+            try {
+                const response = await fetch(`/api/session/${this.sessionId}/transcript`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        speaker: speaker,
+                        text: text
+                    })
+                });
+
+                if (response.ok) {
+                    const newState = await response.json();
+                    // Check for new skill activations before updating state
+                    this.checkNewSkillActivation(newState);
+                    // Keep local transcript (already has new entry), only update Copilot fields
+                    const localTranscript = this.state.transcript || [];
+                    this.state = {
+                        ...newState,
+                        transcript: localTranscript  // Always keep local
+                    };
+                    console.log('✅ Claude responded, state updated');
+                }
+            } catch (e) {
+                console.error('Failed to submit transcript:', e);
+                this.error = 'Failed to process transcript';
+                setTimeout(() => this.error = null, 3000);
+            } finally {
+                this.processingClaude = false;
+            }
+        },
+
+        async stopSTT() {
+            this.sttActive = false;
+            clearTimeout(this.sttCommitTimeout);
+            clearTimeout(this.sttAutoCommitTimer);
+
+            if (this.sttProcessor) {
+                this.sttProcessor.disconnect();
+                this.sttProcessor = null;
+            }
+
+            if (this.sttAudioContext) {
+                await this.sttAudioContext.close();
+                this.sttAudioContext = null;
+            }
+
+            if (this.sttStream) {
+                this.sttStream.getTracks().forEach(t => t.stop());
+                this.sttStream = null;
+            }
+
+            if (this.sttSocket) {
+                this.sttSocket.close();
+                this.sttSocket = null;
+            }
+
+            this.sttPartialText = '';
         },
 
         async fetchState() {
@@ -202,6 +1071,9 @@ function sessionApp(sessionId) {
             this.loading = true;
             this.error = null;
 
+            // Auto-assign speaker based on alternation
+            this.newEntry.speaker = this.getNextSpeaker();
+
             try {
                 const response = await fetch(`/api/session/${this.sessionId}/transcript`, {
                     method: 'POST',
@@ -213,8 +1085,16 @@ function sessionApp(sessionId) {
                     throw new Error('Failed to add transcript entry');
                 }
 
-                this.state = await response.json();
+                const newState = await response.json();
+                this.checkNewSkillActivation(newState);
+                this.state = newState;
                 this.newEntry.text = '';
+
+                // Auto-scroll to bottom
+                this.$nextTick(() => {
+                    const list = this.$refs.transcriptList;
+                    if (list) list.scrollTop = list.scrollHeight;
+                });
             } catch (e) {
                 this.error = e.message;
                 setTimeout(() => this.error = null, 3000);
@@ -241,6 +1121,7 @@ function sessionApp(sessionId) {
                 }
 
                 const data = await response.json();
+                this.checkNewSkillActivation(data.state);
                 this.state = data.state;
                 this.question = '';
             } catch (e) {
@@ -255,6 +1136,29 @@ function sessionApp(sessionId) {
             if (!timestamp) return '';
             const date = new Date(timestamp);
             return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        },
+
+        async endCall() {
+            this.endingCall = true;
+            this.error = null;
+
+            try {
+                const response = await fetch(`/api/session/${this.sessionId}/end`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to end session');
+                }
+
+                // Redirect to summary page
+                window.location.href = `/session/${this.sessionId}/summary`;
+            } catch (e) {
+                this.error = e.message;
+                setTimeout(() => this.error = null, 3000);
+                this.endingCall = false;
+            }
         }
     };
 }

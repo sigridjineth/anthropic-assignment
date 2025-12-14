@@ -12,7 +12,7 @@ See: https://platform.claude.com/docs/en/build-with-claude/skills-guide
 
 import anthropic
 from ..config import get_settings, PERSONA_SYSTEM_CONTEXT
-from ..models import AnswerDraft, Source, SkillDomain
+from ..models import AnswerDraft, Source, Solution, SkillDomain
 from ..services.skills import skill_manager, BETAS
 
 # Base system prompt with persona
@@ -22,13 +22,18 @@ BASE_SYSTEM_PROMPT = f"""{PERSONA_SYSTEM_CONTEXT}
 
 You are helping Sigrid answer customer questions during a discovery call.
 
-Instructions:
-1. Use the knowledge from your Skills to provide accurate answers
-2. Cite sources when available (mention which skill/file the info comes from)
-3. Include appropriate caveats (e.g., "actual savings vary")
-4. Suggest follow-up questions Sigrid could ask the customer
-5. Be specific - use numbers, percentages, and concrete examples
-6. If unsure, say so clearly
+CRITICAL: Provide CONCRETE, ACTIONABLE solutions that Sigrid can immediately share with the customer.
+
+Format your answer as:
+1. **Direct answer** (1-2 sentences addressing the core question)
+2. **Specific solutions** (2-3 bullet points with exact steps/features/numbers)
+3. **Example** (one concrete example if relevant)
+
+Rules:
+- Be SPECIFIC: Use exact numbers, feature names, API methods
+- Be ACTIONABLE: "Use context.summarize() to reduce tokens by 60%" not "Consider optimizing tokens"
+- Be BRIEF: Each bullet should be one clear sentence
+- Cite the skill source for each solution
 
 Use the generate_answer tool to provide your response."""
 
@@ -43,26 +48,50 @@ You have access to the following specialized knowledge:
 
 {{skills_content}}
 
-Instructions:
-1. Use the knowledge above to provide accurate answers
-2. Cite sources when available (mention which skill/file the info comes from)
-3. Include appropriate caveats (e.g., "actual savings vary")
-4. Suggest follow-up questions Sigrid could ask the customer
-5. Be specific - use numbers, percentages, and concrete examples
-6. If unsure, say so clearly
+CRITICAL: Provide CONCRETE, ACTIONABLE solutions that Sigrid can immediately share with the customer.
+
+Format your answer as:
+1. **Direct answer** (1-2 sentences addressing the core question)
+2. **Specific solutions** (2-3 bullet points with exact steps/features/numbers)
+3. **Example** (one concrete example if relevant)
+
+Rules:
+- Be SPECIFIC: Use exact numbers, feature names, API methods from the skills above
+- Be ACTIONABLE: "Use context.summarize() to reduce tokens by 60%" not "Consider optimizing tokens"
+- Be BRIEF: Each bullet should be one clear sentence
+- Cite the skill source for each solution
 
 Use the generate_answer tool to provide your response."""
 
 # Tool definition for structured output
 ANSWER_TOOL = {
     "name": "generate_answer",
-    "description": "Generate an answer to the customer's question using available skills",
+    "description": "Generate a concrete, actionable answer to the customer's question",
     "input_schema": {
         "type": "object",
         "properties": {
+            "headline": {
+                "type": "string",
+                "description": "One-sentence direct answer to the question (max 20 words)"
+            },
+            "solutions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "description": "Specific action or feature (e.g., 'Use context.summarize()')"},
+                        "benefit": {"type": "string", "description": "Concrete benefit (e.g., 'Reduces token usage by 60%')"},
+                        "source": {"type": "string", "description": "Skill source (e.g., 'cdp_context_editing')"}
+                    },
+                    "required": ["action", "benefit", "source"]
+                },
+                "description": "2-3 specific, actionable solutions",
+                "minItems": 1,
+                "maxItems": 4
+            },
             "answer": {
                 "type": "string",
-                "description": "Your response (conversational tone, suitable for reading aloud)"
+                "description": "Full conversational answer Sigrid can say (2-3 sentences max)"
             },
             "sources": {
                 "type": "array",
@@ -86,15 +115,15 @@ ANSWER_TOOL = {
             "caveats": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Important disclaimers or caveats"
+                "description": "Important disclaimers (keep brief)"
             },
             "followups": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "Suggested follow-up questions"
+                "description": "1-2 suggested follow-up questions"
             }
         },
-        "required": ["answer", "sources", "confidence", "caveats", "followups"]
+        "required": ["headline", "solutions", "answer", "sources", "confidence"]
     }
 }
 
@@ -194,6 +223,15 @@ class AnswererAgent:
             if hasattr(block, "type") and block.type == "tool_use" and block.name == "generate_answer":
                 data = block.input
                 return AnswerDraft(
+                    headline=data.get("headline", ""),
+                    solutions=[
+                        Solution(
+                            action=s.get("action", ""),
+                            benefit=s.get("benefit", ""),
+                            source=s.get("source", ""),
+                        )
+                        for s in data.get("solutions", [])
+                    ],
                     answer=data.get("answer", ""),
                     sources=[
                         Source(
@@ -217,6 +255,7 @@ class AnswererAgent:
 
         if text_content:
             return AnswerDraft(
+                headline="",
                 answer=text_content,
                 confidence=0.5,
                 skills_used=skills_used,
@@ -224,6 +263,7 @@ class AnswererAgent:
 
         # Final fallback
         return AnswerDraft(
+            headline="",
             answer="I couldn't generate an answer. Please try again.",
             confidence=0.0,
             skills_used=skills_used,

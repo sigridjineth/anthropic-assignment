@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Copilot - Post-call Summary{% endblock %}
+
+{% block content %}
+<div class="summary-container" x-data="summaryApp('{{ session_id }}')">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="header-persona-avatar">S</div>
+                <span>Sigrid</span>
+            </div>
+            <span class="session-name">| Post-call: {{ company }}</span>
+        </div>
+        <div class="header-actions">
+            <a href="/skills" class="btn-secondary">View Skills</a>
+            <a href="/" class="btn-primary">New Session</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="summary-main">
+        <div class="summary-content" x-show="result">
+            <!-- Interview Archived Banner -->
+            {% if archive_path %}
+            <div class="archive-banner">
+                <div class="archive-icon">📁</div>
+                <div class="archive-info">
+                    <span class="archive-title">Interview Archived</span>
+                    <span class="archive-path">{{ archive_path }}</span>
+                </div>
+                <a href="/skills" class="archive-link">View in Skills →</a>
+            </div>
+            {% endif %}
+
+            <!-- Call Summary -->
+            <section class="summary-section">
+                <h2>Call Summary</h2>
+                <p class="call-summary-text" x-text="result?.call_summary"></p>
+                <div class="outcome-badge">
+                    <span class="outcome-label">Outcome:</span>
+                    <span class="outcome-value" x-text="result?.outcome"></span>
+                </div>
+            </section>
+
+            <!-- Topics & Pain Points -->
+            <div class="summary-grid">
+                <section class="summary-section">
+                    <h3>Topics Covered</h3>
+                    <ul class="topic-list">
+                        <template x-for="topic in result?.topics_covered || []" :key="topic">
+                            <li x-text="topic"></li>
+                        </template>
+                    </ul>
+                </section>
+
+                <section class="summary-section">
+                    <h3>Customer Pain Points</h3>
+                    <ul class="pain-list">
+                        <template x-for="pain in result?.customer_pain_points || []" :key="pain">
+                            <li x-text="pain"></li>
+                        </template>
+                    </ul>
+                </section>
+            </div>
+
+            <!-- Requirements -->
+            <section class="summary-section" x-show="result?.customer_requirements?.length">
+                <h3>Key Requirements</h3>
+                <ul class="requirements-list">
+                    <template x-for="req in result?.customer_requirements || []" :key="req">
+                        <li x-text="req"></li>
+                    </template>
+                </ul>
+            </section>
+
+            <!-- Skills Used -->
+            <section class="summary-section">
+                <h3>Skills Used</h3>
+                <div class="skills-summary">
+                    <div class="skill-group">
+                        <span class="skill-group-label">Activated:</span>
+                        <template x-for="skill in result?.skills_used || []" :key="skill">
+                            <span class="skill-tag skill-used" x-text="skill"></span>
+                        </template>
+                        <span x-show="!result?.skills_used?.length" class="no-skills">None</span>
+                    </div>
+                    <div class="skill-group">
+                        <span class="skill-group-label">Helpful:</span>
+                        <template x-for="skill in result?.skills_helpful || []" :key="skill">
+                            <span class="skill-tag skill-helpful" x-text="skill"></span>
+                        </template>
+                        <span x-show="!result?.skills_helpful?.length" class="no-skills">None</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Skill Update Proposals -->
+            <section class="summary-section" x-show="result?.skill_update_proposals?.length">
+                <h3>Suggested Skill Updates</h3>
+                <p class="section-description">New patterns detected that could improve future calls</p>
+                <div class="proposals-list">
+                    <template x-for="(proposal, index) in result?.skill_update_proposals || []" :key="index">
+                        <div class="proposal-card" :class="{ 'approved': proposal.approved, 'dismissed': proposal.dismissed }">
+                            <div class="proposal-header">
+                                <span class="proposal-skill" x-text="proposal.skill_id"></span>
+                                <span class="proposal-type" x-text="proposal.update_type"></span>
+                            </div>
+                            <p class="proposal-file" x-text="proposal.file_path"></p>
+                            <div class="proposal-content">
+                                <pre x-text="proposal.content"></pre>
+                            </div>
+                            <p class="proposal-rationale" x-text="proposal.rationale"></p>
+                            <div class="proposal-actions" x-show="!proposal.approved && !proposal.dismissed">
+                                <button @click="approveProposal(index)" class="btn-approve">Approve</button>
+                                <button @click="dismissProposal(index)" class="btn-dismiss">Dismiss</button>
+                            </div>
+                            <div class="proposal-status" x-show="proposal.approved">
+                                <span class="status-approved">Approved</span>
+                            </div>
+                            <div class="proposal-status" x-show="proposal.dismissed">
+                                <span class="status-dismissed">Dismissed</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            <!-- Follow-up Actions -->
+            <section class="summary-section" x-show="result?.follow_up_actions?.length">
+                <h3>Recommended Follow-ups</h3>
+                <ul class="followup-list">
+                    <template x-for="action in result?.follow_up_actions || []" :key="action">
+                        <li x-text="action"></li>
+                    </template>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Loading State -->
+        <div class="summary-loading" x-show="loading">
+            <div class="loading-spinner large"></div>
+            <p>Generating post-call analysis...</p>
+        </div>
+
+        <!-- No Data State -->
+        <div class="summary-empty" x-show="!loading && !result">
+            <p>No post-call data available.</p>
+            <a href="/" class="btn-primary">Start New Session</a>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function summaryApp(sessionId) {
+    return {
+        sessionId: sessionId,
+        company: '{{ company }}',
+        result: {{ post_call_result | tojson if post_call_result else 'null' }},
+        loading: false,
+        updating: false,
+
+        async approveProposal(index) {
+            const proposal = this.result?.skill_update_proposals?.[index];
+            if (!proposal || proposal.approved) return;
+
+            this.updating = true;
+            try {
+                const response = await fetch('/api/skills/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        skill_id: proposal.skill_id,
+                        file_path: proposal.file_path,
+                        update_type: proposal.update_type,
+                        content: proposal.content,
+                        company: this.company
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Skill updated:', data.message);
+                    proposal.approved = true;
+                } else {
+                    const err = await response.json();
+                    alert('Failed to update skill: ' + (err.detail || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error('Skill update error:', e);
+                alert('Failed to update skill');
+            } finally {
+                this.updating = false;
+            }
+        },
+
+        dismissProposal(index) {
+            if (this.result?.skill_update_proposals?.[index]) {
+                this.result.skill_update_proposals[index].dismissed = true;
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

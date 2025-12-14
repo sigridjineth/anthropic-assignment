@@ -52,6 +52,10 @@ async def session_page(request: Request, session_id: str):
     if not session:
         return RedirectResponse(url="/")
 
+    # If session ended, redirect to summary
+    if session.ended_at:
+        return RedirectResponse(url=f"/session/{session_id}/summary")
+
     return templates.TemplateResponse(
         "session.html",
         {
@@ -63,10 +67,35 @@ async def session_page(request: Request, session_id: str):
     )
 
 
+@app.get("/session/{session_id}/summary")
+async def summary_page(request: Request, session_id: str):
+    """Post-call summary page."""
+    session = session_store.get(session_id)
+    if not session:
+        return RedirectResponse(url="/")
+
+    return templates.TemplateResponse(
+        "summary.html",
+        {
+            "request": request,
+            "session_id": session_id,
+            "company": session.company,
+            "post_call_result": session.post_call_result.model_dump() if session.post_call_result else None,
+            "archive_path": session.archive_path,
+        },
+    )
+
+
+@app.get("/skills")
+async def skills_page(request: Request):
+    """Skills management page - view company knowledge and interview learnings."""
+    return templates.TemplateResponse("skills.html", {"request": request})
+
+
 def run():
     """Run the application."""
     import uvicorn
-    uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("src.main:app", host="127.0.0.1", port=8000, reload=True)
 
 
 if __name__ == "__main__":

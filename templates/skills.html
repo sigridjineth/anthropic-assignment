@@ -1,0 +1,559 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Copilot - Skills Management{% endblock %}
+
+{% block content %}
+<div class="skills-container" x-data="skillsApp()">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <a href="/" class="logo">
+                <div class="header-persona-avatar">S</div>
+                <span>Sigrid</span>
+            </a>
+            <span class="session-name">| Skills Management</span>
+        </div>
+        <a href="/" class="btn-secondary">Back to Home</a>
+    </header>
+
+    <!-- Main Content -->
+    <main class="skills-main">
+        <div class="skills-header">
+            <h1>Knowledge Base</h1>
+            <p class="skills-subtitle">Company knowledge and learnings from previous interviews</p>
+        </div>
+
+        <!-- Git Status Card -->
+        <div class="git-status-card" x-show="!loading && git">
+            <div class="git-status-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="git-title">Version Control</span>
+                <span class="git-branch" x-show="git?.branch">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="6" y1="3" x2="6" y2="15"/>
+                        <circle cx="18" cy="6" r="3"/>
+                        <circle cx="6" cy="18" r="3"/>
+                        <path d="M18 9a9 9 0 0 1-9 9"/>
+                    </svg>
+                    <span x-text="git?.branch"></span>
+                </span>
+            </div>
+            <div class="git-status-body">
+                <div class="git-info-row" x-show="git?.last_commit">
+                    <span class="git-label">Last commit:</span>
+                    <span class="git-value" x-text="git?.last_commit"></span>
+                </div>
+                <div class="git-info-row" x-show="git?.remote_url">
+                    <span class="git-label">Remote:</span>
+                    <span class="git-value git-remote" x-text="formatRemote(git?.remote_url)"></span>
+                </div>
+                <div class="git-sync-status">
+                    <template x-if="git?.has_changes">
+                        <span class="sync-badge pending">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            Uncommitted changes in skills/
+                        </span>
+                    </template>
+                    <template x-if="!git?.has_changes">
+                        <span class="sync-badge synced">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            Skills synced with Git
+                        </span>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="skills-loading" x-show="loading">
+            <div class="loading-spinner large"></div>
+            <p>Loading skills...</p>
+        </div>
+
+        <!-- Skills Grid -->
+        <div class="skills-grid" x-show="!loading">
+            <template x-for="skill in skills" :key="skill.id">
+                <div class="skill-card">
+                    <div class="skill-card-header" @click="toggleSkill(skill.id)">
+                        <div class="skill-info">
+                            <h2 x-text="skill.name"></h2>
+                            <p class="skill-description" x-text="skill.description || ''"></p>
+                        </div>
+                        <div class="skill-stats">
+                            <span class="stat-badge knowledge">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+                                </svg>
+                                <span x-text="skill.knowledge.length"></span>
+                            </span>
+                            <span class="stat-badge learnings" x-show="skill.learnings.length > 0">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"/>
+                                    <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                </svg>
+                                <span x-text="skill.learnings.length"></span>
+                            </span>
+                        </div>
+                        <svg class="expand-icon" :class="{ 'expanded': expandedSkills[skill.id] }" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+
+                    <div class="skill-card-body" x-show="expandedSkills[skill.id]" x-collapse>
+                        <!-- Company Knowledge Section -->
+                        <div class="skill-section">
+                            <h3>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+                                </svg>
+                                Company Knowledge
+                            </h3>
+                            <ul class="file-list">
+                                <template x-for="file in skill.knowledge" :key="file.file">
+                                    <li class="file-item" :class="file.type">
+                                        <span class="file-icon" x-text="file.type === 'main' ? '📘' : '📄'"></span>
+                                        <span class="file-name" x-text="file.file"></span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+
+                        <!-- Interview Learnings Section -->
+                        <div class="skill-section" x-show="skill.learnings.length > 0">
+                            <h3>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"/>
+                                    <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                </svg>
+                                Interview Learnings
+                            </h3>
+                            <ul class="file-list learnings">
+                                <template x-for="learning in skill.learnings" :key="learning.file">
+                                    <li class="file-item learning">
+                                        <div class="learning-info">
+                                            <span class="file-icon">💡</span>
+                                            <span class="learning-company" x-text="learning.company || 'Unknown'"></span>
+                                            <span class="learning-type" x-text="learning.update_type?.replace('_', ' ') || ''"></span>
+                                        </div>
+                                        <span class="learning-date" x-text="formatDate(learning.date)"></span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+
+                        <!-- Empty Learnings -->
+                        <div class="skill-section empty" x-show="skill.learnings.length === 0">
+                            <p class="empty-message">No interview learnings yet. Learnings are added when you approve skill updates after calls.</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Empty State -->
+        <div class="skills-empty" x-show="!loading && skills.length === 0">
+            <p>No skills found.</p>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function skillsApp() {
+    return {
+        skills: [],
+        git: null,
+        loading: true,
+        expandedSkills: {},
+
+        async init() {
+            await this.loadSkills();
+        },
+
+        async loadSkills() {
+            this.loading = true;
+            try {
+                const response = await fetch('/api/skills');
+                if (response.ok) {
+                    const data = await response.json();
+                    this.skills = data.skills || [];
+                    this.git = data.git || null;
+                    // Auto-expand first skill
+                    if (this.skills.length > 0) {
+                        this.expandedSkills[this.skills[0].id] = true;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load skills:', e);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        toggleSkill(skillId) {
+            this.expandedSkills[skillId] = !this.expandedSkills[skillId];
+        },
+
+        formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            } catch {
+                return dateStr;
+            }
+        },
+
+        formatRemote(url) {
+            if (!url) return '';
+            // Convert git@github.com:user/repo.git to github.com/user/repo
+            return url
+                .replace('git@', '')
+                .replace('.git', '')
+                .replace(':', '/')
+                .replace('https://', '');
+        }
+    };
+}
+</script>
+
+<style>
+.skills-container {
+    min-height: 100vh;
+    background: var(--bg-secondary);
+}
+
+.skills-main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.skills-header {
+    margin-bottom: 32px;
+}
+
+.skills-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.skills-subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Git Status Card */
+.git-status-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.git-status-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.git-status-header svg:first-child {
+    color: var(--text-secondary);
+}
+
+.git-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.git-branch {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    padding: 4px 10px;
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--text-secondary);
+}
+
+.git-status-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.git-info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.git-label {
+    color: var(--text-muted);
+    min-width: 80px;
+}
+
+.git-value {
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.git-remote {
+    color: var(--text-secondary);
+}
+
+.git-sync-status {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.sync-badge.synced {
+    background: var(--accent-green-light);
+    color: var(--accent-green);
+}
+
+.sync-badge.pending {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.skills-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    color: var(--text-secondary);
+}
+
+.skills-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.skill-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.skill-card-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.skill-card-header:hover {
+    background: var(--bg-secondary);
+}
+
+.skill-info {
+    flex: 1;
+}
+
+.skill-info h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+}
+
+.skill-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.skill-stats {
+    display: flex;
+    gap: 8px;
+    margin-right: 12px;
+}
+
+.stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.stat-badge.knowledge {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.stat-badge.learnings {
+    background: #f0fdf4;
+    color: var(--accent);
+}
+
+.expand-icon {
+    transition: transform 0.2s;
+    color: var(--text-tertiary);
+}
+
+.expand-icon.expanded {
+    transform: rotate(180deg);
+}
+
+.skill-card-body {
+    border-top: 1px solid var(--border-color);
+    padding: 20px;
+    background: var(--bg-secondary);
+}
+
+.skill-section {
+    margin-bottom: 20px;
+}
+
+.skill-section:last-child {
+    margin-bottom: 0;
+}
+
+.skill-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px 0;
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.file-item.main {
+    border-left: 3px solid #0369a1;
+}
+
+.file-item.reference {
+    border-left: 3px solid #94a3b8;
+}
+
+.file-item.learning {
+    border-left: 3px solid var(--accent);
+    justify-content: space-between;
+}
+
+.file-icon {
+    font-size: 14px;
+}
+
+.file-name {
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.learning-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.learning-company {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.learning-type {
+    padding: 2px 6px;
+    background: #f0fdf4;
+    color: var(--accent);
+    border-radius: 4px;
+    font-size: 11px;
+    text-transform: capitalize;
+}
+
+.learning-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.skill-section.empty {
+    padding: 20px;
+    background: white;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.empty-message {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+.skills-empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-secondary);
+}
+</style>
+{% endblock %}

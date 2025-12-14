@@ -12,6 +12,9 @@ dependencies = [
     "pydantic-settings>=2.6.0",
     "jinja2>=3.1.0",
     "python-multipart>=0.0.12",
+    "elevenlabs>=1.0.0",
+    "httpx>=0.28.0",
+    "pyyaml>=6.0.0",
 ]
 
 [tool.uv]

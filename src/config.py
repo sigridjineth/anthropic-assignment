@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     anthropic_api_key: str = ""
-    model_name: str = "claude-sonnet-4-20250514"
+    elevenlabs_api_key: str = ""
+    model_name: str = "claude-haiku-4-5-20251001"
 
     class Config:
         env_file = ".env"
