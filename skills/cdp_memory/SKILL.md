@@ -1,5 +1,5 @@
 ---
-name: memory_playbook
+name: memory-playbook
 description: Cross-session persistence for user preferences, implementation guide for Memory feature.
 ---
 

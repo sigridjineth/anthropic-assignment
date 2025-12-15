@@ -2,8 +2,7 @@
 
 * Vercel Demo: [Link](https://interview-copilot-with-skills.vercel.app/)
 * Slides: [Link](https://drive.google.com/file/d/1v_ab8uoFnjoEL2LnMrHcmPybgdfiFYGr/view?usp=sharing)
-* YouTube: [Link](https://youtu.be/fOXLW6t2faw)
-* Claude Skills for API Docs: [Link](https://platform.claude.com/docs/en/build-with-claude/skills-guide)
+* YouTube: [Link](https://youtu.be/GgGElsXZy2o)
 
 A working demo that shows how to build multi-agent systems with Claude Skills.
 
@@ -219,11 +218,23 @@ make format   # Format code
 | `pricing_guidance` | Claude API pricing, tier recommendations |
 | `fintech_patterns` | Industry-specific objections and patterns |
 
+## Learn by Running
+
+If you want to understand Skills without digging through the full app, there's a standalone script that walks through the entire flow.
+
+```bash
+uv run python scripts/demo_skills_api.py
+```
+
+It runs real API calls and prints exactly what's happening at each step: SKILL.md structure, Router decisions, container.skills attachment, and the postmortem flywheel. Takes about 30 seconds to run. No setup beyond your API key.
+
+For a more detailed breakdown, see **[docs/LEARNING_MATERIALS.md](docs/LEARNING_MATERIALS.md)**.
+
 ## Deep Dive: Building with Skills
 
 Want to understand how this project works under the hood? Check out the detailed guide:
 
-**[docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md)** covers:
+**[SKILLS GUIDE](./docs/SKILLS_GUIDE.md)** covers:
 - SKILL.md format and structure
 - Uploading skills via the API
 - Building a router with structured output
