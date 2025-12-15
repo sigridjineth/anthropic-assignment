@@ -1,4 +1,150 @@
-# Assignment
+# Interview Copilot Demo for Claude Skills
+
+* Vercel Demo: [Link](https://interview-copilot-with-skills.vercel.app/)
+* Slides: [Link](https://drive.google.com/file/d/1v_ab8uoFnjoEL2LnMrHcmPybgdfiFYGr/view?usp=sharing)
+* Claude Skills for API Docs: [Link](https://platform.claude.com/docs/en/build-with-claude/skills-guide)
+
+A working demo that shows how to build multi-agent systems with Claude Skills.
+
+Your sales colleague is on a call. Customer asks a technical question. The answer exists somewhere in your org's docs, but it's stuck in someone else's silo. Sound familiar?
+
+This project fixes that. It's a real-time copilot that pulls the right knowledge at the right moment during customer calls.
+
+![The Problem](assets/‎design.‎004.png)
+
+## Why Skills, Not RAG?
+
+I tried RAG first. It's great for search, but terrible for consistent execution.
+
+When your DevRel team needs to answer "How does Context Editing work?" the same way every time, you don't want a system that retrieves different chunks depending on the query. You want a playbook. Something reviewed, versioned, and approved by your team.
+
+![Skills vs RAG](assets/‎design.‎005.png)
+
+That's what Claude Skills are: modular bundles of instructions that run in Claude's code execution container. Think of them as capabilities you give your agents. Org knowledge is just one use case.
+
+![What is Claude Skills](assets/‎design.‎002.png)
+
+## Building with Claude Skills (3 Steps)
+
+### Step 1. Package Your Skills
+
+Create a folder with a `SKILL.md` file. The frontmatter has name and description. The body contains instructions Claude follows when the skill is attached.
+
+```
+skills/
+├─ context_editing_guide/
+│  ├─ SKILL.md          ← Entry point (metadata + instructions)
+│  └─ strategies.md     ← Pulled in on demand
+├─ memory_playbook/
+│  └─ SKILL.md
+└─ fintech_patterns/    ← Team learnings from past calls
+```
+
+Your `SKILL.md` looks like this:
+
+```yaml
+---
+name: context-editing-guide
+description: Managing context window, token optimization, summarization strategies
+---
+
+# Context Editing Guide
+
+## When to Use
+- Questions about managing long conversations
+- Token cost concerns
+- "Context window filling up"
+
+## Key Pattern
+Turns 1-5:   Keep verbatim (recent context)
+Turns 6-15:  Summarize (compressed context)
+Persistent:  Extracted facts (always present)
+```
+
+![Step 1](assets/‎design.‎007.png)
+
+### Step 2. Build a Router
+
+The router decides which skills to attach based on the conversation. Use structured output with `tool_choice` to force a clean decision:
+
+```python
+ROUTER_TOOL = {
+    "name": "route_skills",
+    "description": "Determine which skills to activate",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "needs_skill": {"type": "boolean"},
+            "suggested_skills": {
+                "type": "array",
+                "items": {
+                    "properties": {
+                        "domain": {"type": "string"},
+                        "confidence": {"type": "number"}
+                    }
+                }
+            },
+            "trigger_reason": {"type": "string"}
+        }
+    }
+}
+
+response = client.messages.create(
+    model="claude-haiku-4-5-20251001",
+    tools=[ROUTER_TOOL],
+    tool_choice={"type": "tool", "name": "route_skills"},
+    messages=[{"role": "user", "content": transcript}]
+)
+```
+
+![Step 2](assets/‎design.‎008.png)
+
+### Step 3. Attach Skills via container.skills
+
+Upload your skill once, then attach it to any message call:
+
+```python
+BETAS = ["code-execution-2025-08-25", "skills-2025-10-02"]
+
+# Upload skill (do this once)
+skill = client.beta.skills.create(
+    display_title="Context Editing Guide",
+    files=files_from_dir("skills/context_editing_guide"),
+    betas=BETAS
+)
+
+# Attach to messages
+response = client.beta.messages.create(
+    model="claude-sonnet-4-5-20250929",
+    max_tokens=4096,
+    betas=BETAS,
+    container={
+        "skills": [{
+            "type": "custom",
+            "skill_id": skill.id,
+            "version": "latest"
+        }]
+    },
+    messages=[{"role": "user", "content": question}]
+)
+```
+
+![Step 3](assets/‎design.‎009.png)
+
+## Architecture
+
+Four agents work together. Haiku handles the fast routing decisions, Sonnet handles the actual answers where quality matters.
+
+![Architecture](assets/‎design.‎010.png)
+
+| Agent | Model | Job |
+|-------|-------|-----|
+| Prep Agent | Haiku 4.5 | Takes customer info, creates session with relevant skills enabled |
+| Router Agent | Haiku 4.5 | Watches transcript, decides which skills to activate |
+| Answer Agent | Sonnet 4.5 | Generates responses using the attached skills |
+| Postmortem Agent | Haiku 4.5 | After the call, proposes skill updates based on what was learned |
+
+The postmortem loop is where it gets interesting. Every call teaches the system something. New objection patterns, pricing questions, technical edge cases. The agent proposes updates to your skills, you review them via PR, and the next call benefits.
 
 ## Quick Start
 
@@ -12,66 +158,72 @@ uv sync
 
 ```bash
 cp .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
+# Add your ANTHROPIC_API_KEY
 ```
 
-### 3. Run the application
+### 3. Run
 
 ```bash
 uv run uvicorn src.main:app --reload
 ```
 
-Then open http://localhost:8000 in your browser.
+Open http://localhost:8000
 
-## Usage
+## What It Looks Like
 
-1. **Landing Page**: Enter customer details (company, industry, roles, purpose)
-2. Click **Generate Session Brief** to get AI-powered preparation
-3. Click **Start Session** to begin the live copilot
-4. **Session Page**: Add transcript entries as the call progresses
-5. Watch as the copilot activates skills and suggests answers
-6. Use **Ask Copilot** to get direct answers
+The landing page shows your upcoming calls and lets you describe the customer:
 
-## Architecture
+![Landing](assets/Screenshot%202025-12-15%20at%205.11.01%20PM.png)
 
-### 3-Agent System
+During the call, you get a split view. Transcript on the left, copilot suggestions on the right:
 
-1. **Prep Agent** (Landing) - Generates session briefs and recommendations
-2. **Router Agent** (Session) - Decides which skills to activate
-3. **Summarizer Agent** (Session) - Maintains live conversation summary
-4. **Answerer Agent** (Session) - Generates answers using active skills
+![Session](assets/f101ec0a-3972-4712-9650-515225902084.png)
 
-### Skills
+After the call, you get a summary with pain points, topics covered, and recommended follow-ups:
 
-- `roadmap` - Product timelines, feature availability
-- `architecture` - System design, data flow, technical details
-- `security` - Compliance, encryption, data handling
-- `pricing` - Plans, costs, enterprise options
+![Post-call](assets/875bd1ef-d4a5-4beb-a39f-9a0b6bf96fe5.png)
+
+Your skills live in a knowledge base that's version-controlled and synced with git:
+
+![Knowledge Base](assets/0e6ef1c8-a44a-4a29-90fc-17b3d883f54b.png)
 
 ## API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
+| Endpoint | Method | What it does |
+|----------|--------|--------------|
 | `/` | GET | Landing page |
 | `/api/prep` | POST | Generate session brief |
 | `/api/session` | POST | Create new session |
 | `/session/{id}` | GET | Session page |
 | `/api/session/{id}/transcript` | POST | Add transcript entry |
 | `/api/session/{id}/ask` | POST | Ask copilot directly |
-| `/api/session/{id}/state` | GET | Get session state |
+| `/api/session/{id}/state` | GET | Get current session state |
+| `/api/session/{id}/end` | POST | End session, trigger postmortem |
 
 ## Development
 
 ```bash
-# Run with auto-reload
-make dev
-
-# Run tests
-make test
-
-# Lint code
-make lint
-
-# Format code
-make format
+make dev      # Run with auto-reload
+make test     # Run tests
+make lint     # Check code
+make format   # Format code
 ```
+
+## Skills in This Demo
+
+| Skill | What it covers |
+|-------|----------------|
+| `context_editing_guide` | Token optimization, summarization strategies |
+| `memory_playbook` | Cross-session persistence, multi-day conversations |
+| `pricing_guidance` | Claude API pricing, tier recommendations |
+| `fintech_patterns` | Industry-specific objections and patterns |
+
+## Links
+
+- [Claude Skills Guide](https://docs.anthropic.com/en/docs/build-with-claude/claude-for-sheets)
+- [Structured Outputs](https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use)
+- [Code Execution](https://docs.anthropic.com/en/docs/build-with-claude/code-execution)
+
+## Questions?
+
+sigrid.jinhyung@gmail.com

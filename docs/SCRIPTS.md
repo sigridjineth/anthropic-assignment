@@ -1,4 +1,13 @@
-# Interview Copilot Demo Script — Final v9.7
+# Interview Copilot Demo Script — Final v9.8
+
+> **Key Changes from v9.7:**
+> - **Demo Section 개편**: 실제 UI 스크린샷 기반으로 재작성
+> - **Screen 7 (Landing)**: 유지 — Session Ready 모달
+> - **Screen 8**: Router Decision Box + Skills for Next Call (실제 UI 반영)
+> - **Screen 9**: Suggested Response + Sources 패널 (실제 UI 반영)
+> - **Screen 10**: Post-call Summary 상세화 (Call Summary, Pain Points, Proposals)
+> - **Screen 11**: Knowledge Base 페이지 추가 (flywheel 완성)
+> - **Customer name**: FinBot (Series B fintech, 50K+ users) 통일
 
 > **Key Changes from v9.6:**
 > - **PDF 순서 정렬**: RAG vs Skills를 Before/After 뒤로 이동 (Screen 6.5)
@@ -48,7 +57,7 @@
 
 ---
 
-## Timeline (5:12 target) — PDF 순서 정렬
+## Timeline (5:25 target) — 실제 UI 기반
 
 | Time | Section | Content |
 |------|---------|---------|
@@ -59,9 +68,9 @@
 | 1:15-1:28 | **Before vs After** | Quick proof |
 | 1:28-1:43 | **Why Skills, Not RAG?** | Execution > Retrieval (Accumulative, Evolvable) |
 | 1:43-1:45 | **Live Demo** | Transition slide |
-| 1:45-3:27 | **Demo** | Landing → Dynamic Skill → Sources → Post-call |
-| 3:27-4:27 | **How to Build** | 3-step recipe + Real code + Architecture |
-| 4:27-5:12 | **Wrap Up** | Operational wins + Resources |
+| 1:45-3:40 | **Demo** | Landing → Router Decision → Sources → Post-call → Knowledge Base |
+| 3:40-4:40 | **How to Build** | 3-step recipe + Real code + Architecture |
+| 4:40-5:25 | **Wrap Up** | Operational wins + Resources |
 
 ---
 
@@ -376,30 +385,42 @@
 
 ---
 
-## [1:45-3:25] Demo
+## [1:45-3:40] Demo
 
-### Screen 7 (1:45-2:02): Landing
+### Screen 7 (1:45-2:02): Landing — Session Ready
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  Session Ready: FinBot                                       [×] │
+│  Session Ready                                               [×] │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  📋 BRIEF                                                        │
-│  Fintech (Series B) · Head of Engineering · API user 6 months    │
+│  BRIEF                                                           │
+│  FinBot (Series B fintech) is scaling an AI financial advisor    │
+│  chatbot with 50K+ retail users. Their core challenge: 20-50     │
+│  turn conversations are exploding token costs and losing         │
+│  context (user preferences, investment constraints), creating    │
+│  both UX and compliance risks.                                   │
 │                                                                  │
-│  📦 ATTACHED (by Prep Agent — baseline from customer brief)      │
-│  ✅ context_editing_guide                                        │
-│  ✅ fintech_patterns                                             │
+│  LIKELY TOPICS                                                   │
+│  ┌─────────────────────────────────────────────────────┐  95%   │
+│  │ Context window management & token optimization...   │        │
+│  └─────────────────────────────────────────────────────┘        │
+│  ┌─────────────────────────────────────────────────────┐  92%   │
+│  │ Cross-conversation memory & persistent user state   │        │
+│  └─────────────────────────────────────────────────────┘        │
 │                                                                  │
-│  📦 AVAILABLE (Router attaches dynamically)                      │
-│  ○  memory_playbook  ← Our guide for implementing Memory         │
-│  ○  pricing_guidance     (NOT the Memory feature itself)         │
-│  ○  interview_records ← Stores call transcripts for reference    │
+│  📦 ATTACHED (BY PREP AGENT — BASELINE FROM CUSTOMER BRIEF)      │
+│  ✅ cdp context editing                                          │
+│  ✅ cdp memory                                                   │
+│                                                                  │
+│  📦 AVAILABLE (ROUTER ATTACHES DYNAMICALLY)                      │
+│  ○  pricing guidance                                             │
+│  ○  fintech patterns                                             │
 │                                                                  │
 │  These are CUSTOM skills our team created.                       │
 │  You'd package your own org's knowledge.                         │
 │                                                                  │
+│                                    [Back]  [Enter Session]       │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -409,180 +430,300 @@
 >
 > "Let me show you this in action. I built an Interview Copilot.
 >
-> I'm Sigrid, DevRel at Anthropic. I'm about to start a call with FinBot — a fintech startup, Series B, 6 months into using our API.
+> I'm Sigrid, DevRel at Anthropic. I'm about to start a call with FinBot — a Series B fintech with 50K+ users.
 >
-> Watch what happens: Prep Agent already analyzed their brief and attached baseline skills — `context_editing_guide`, `fintech_patterns`.
+> Watch what happens: Prep Agent already analyzed their brief and attached baseline skills — `cdp context editing`, `cdp memory`.
 >
-> See `memory_playbook` in Available? That's *not* the Memory feature — it's our team's **implementation guide** for that feature. The playbook for enabling it correctly. Router will attach it if the conversation needs it."
+> These are our team's playbooks — not the features themselves, but our **implementation guides** for those features. The remaining skills stay available for Router to attach dynamically if the conversation needs them."
 
 ---
 
-### Screen 8 (2:02-2:32): Dynamic Skill — KEY MOMENT
+### Screen 8 (2:02-2:22): Live Call — Router Decision (KEY MOMENT)
+
+**실제 UI 요소:**
+- Live Transcript (왼쪽) — [C] Customer, [S] Sigrid
+- LIVE SUMMARY
+- ⚡ ROUTER DECISION 패널 (주황색)
+- 📦 SKILLS FOR NEXT CALL (META 배지 + ← NEW)
 
 ```
 ┌──────────────────────────────┬──────────────────────────────────────┐
-│      TRANSCRIPT              │  COPILOT                             │
+│      LIVE TRANSCRIPT         │  COPILOT                             │
 │                              │                                      │
-│  [Sarah] 2:05 PM             │  ⚡ ROUTER DECISION                  │
-│  "Our conversations get      │  ┌────────────────────────────────┐  │
-│  really long. And users      │  │ Detected: cross-session topic  │  │
-│  come back the next day      │  │                                │  │
-│  expecting Claude to         │  │ Router DECIDES:                │  │
-│  remember what they said.    │  │ → attach memory_playbook       │  │
-│                              │  │                                │  │
-│  Is there a way to handle    │  │ I'm not attaching the Memory   │  │
-│  that?"                      │  │ feature — I'm attaching our    │  │
-│                              │  │ team's implementation guide.   │  │
-│                              │  │                                │  │
-│                              │  │ Confidence: 89%                │  │
+│  [C] 02:23 AM                │  LIVE SUMMARY                        │
+│  "Our conversations get      │  Customer operates a conversational  │
+│  really long, and users      │  application with multi-day...       │
+│  come back the next day      │                                      │
+│  expecting Claude to         │  ⚡ ROUTER DECISION                  │
+│  remember what they said.    │  ┌────────────────────────────────┐  │
+│  Is there a way to handle    │  │ Detected: Customer explicitly  │  │
+│  that?"                      │  │ asked about Claude remembering │  │
+│                              │  │ context across multiple days/  │  │
+│  [S] 02:28 AM                │  │ sessions...                    │  │
+│  "Then I can say for long    │  │                                │  │
+│  conversations that span     │  │ Router DECIDES:                │  │
+│  multiple days, you need     │  │ → attach memory_playbook       │  │
+│  two complementary           │  │ → attach context_editing_guide │  │
+│  features..."                │  │                                │  │
+│                              │  │ Confidence: 95%                │  │
 │                              │  └────────────────────────────────┘  │
 │                              │                                      │
-│                              │  📦 Skills for Next Call             │
-│                              │  ✅ context_editing_guide            │
-│                              │  ✅ fintech_patterns                 │
-│                              │  ✅ memory_playbook  ← NEW           │
+│                              │  📦 SKILLS FOR NEXT CALL             │
+│                              │  ✅ META memory_playbook      ← NEW  │
+│                              │  ✅ META context_editing_guide ← NEW │
+│                              │  ○  fintech-patterns                 │
+│                              │  ○  pricing-guidance                 │
 │                              │                                      │
 └──────────────────────────────┴──────────────────────────────────────┘
 ```
 
-### Narration (30s) — SLOW DOWN
+### Narration (20s) — SLOW DOWN, KEY MOMENT
 
-> *(Pause before speaking — build anticipation)*
+> *(Point at the screen)*
 >
-> "Watch closely. **This is the key moment.**"
+> "Here's the Interview Copilot in action. Customer says: 'Users come back the next day expecting Claude to remember.'
 >
-> *(Point at transcript)*
+> Watch the right panel. Router catches it instantly.
 >
-> "Sarah says: 'Users come back the next day expecting Claude to remember.' 'Come back the next day.' 'Remember.'
+> 'Detected: Customer asked about remembering context across multiple days.' Decision: **attach memory_playbook and context_editing_guide**. Confidence 95%.
 >
-> Router catches this. Look — 'Detected: cross-session topic.' Confidence 89%. Decision: **attach memory_playbook**."
+> See 'Skills for Next Call'? Two new skills just got attached — both marked META. The answerer's next response will draw from both.
 >
-> *(Beat)*
->
-> "Without Skills, I'd Slack a platform engineer mid-call. With Skills, the playbook is already shippable knowledge — and we load it instantly.
->
-> Look at 'Skills for Next Call' — it went from two to three. The answerer's *next* response will have access to our Memory implementation guide.
->
-> This is **lazy-loading team knowledge** in action. The magic happens between API calls."
+> This is **lazy-loading team knowledge** in action."
 
 ---
 
-### Screen 9 (2:32-2:52): Response + SOURCES HIGHLIGHT
+### Screen 9 (2:22-2:42): Suggested Response + SOURCES
+
+**실제 UI 요소 (Image 5):**
+- 💡 SUGGESTED RESPONSE (노란색 헤더)
+- Headline: "Use Memory for cross-session persistence and Context Editing to optimize within-session conversations."
+- 3-step 솔루션 (주황색 왼쪽 바)
+- 📁 SOURCES 섹션
+- 92% confidence 바
 
 ```
 ┌──────────────────────────────┬──────────────────────────────────────┐
-│      TRANSCRIPT              │  COPILOT                             │
+│      LIVE TRANSCRIPT         │  COPILOT                             │
 │                              │                                      │
-│  [Customer] 2:05 PM          │  💡 Suggested Response               │
-│  "...Is there a way to       │  ───────────────────────────────     │
-│  handle that?"               │                                      │
-│                              │  "Two things work together:          │
+│  [C] 02:47 AM                │  💡 SUGGESTED RESPONSE               │
+│  "our conversations get      │  ───────────────────────────────     │
+│  really long, and users      │                                      │
+│  come back the next day      │  Use Memory for cross-session        │
+│  expecting Claude to         │  persistence and Context Editing     │
+│  remember what they said.    │  to optimize within-session          │
+│  Is there a way to handle    │  conversations.                      │
+│  that"                       │                                      │
+│                              │  → Store compliance-critical facts   │
+│                              │    (KYC data, transaction history,   │
+│                              │    regulatory flags) in Memory at    │
+│                              │    natural conversation breaks...    │
 │                              │                                      │
-│                              │  **Context Editing** — manage long   │
-│                              │  conversations within a session.     │
+│                              │  → Within a single long conversation │
+│                              │    use Context Editing's summarize() │
+│                              │    to condense early exchanges when  │
+│                              │    approaching 80-90% token capacity │
 │                              │                                      │
-│                              │  **Memory** — cross-session. Our     │
-│                              │  memory_playbook has the exact       │
-│                              │  enablement steps: SDK integration,  │
-│                              │  client handlers, known caveats.     │
-│                              │                                      │
-│                              │  For fintech: compliance-critical    │
-│                              │  info should persist in Memory."     │
+│                              │  → At end-of-session checkpoints,    │
+│                              │    write a Memory entry with:        │
+│                              │    (1) customer financial profile    │
+│                              │    (2) regulatory flags              │
+│                              │    (3) next session priorities       │
 │                              │                                      │
 │                              │  ┌────────────────────────────────┐  │
-│                              │  │ 📄 SOURCES                     │  │
-│                              │  │ ════════════════════════════   │  │
-│                              │  │ • context_editing_guide/       │  │
-│                              │  │   SKILL.md                     │  │
-│                              │  │   "60-70% token reduction..."  │  │
-│                              │  │                                │  │
-│                              │  │ • memory_playbook/SKILL.md     │  │
-│                              │  │   "Cross-session persistence   │  │
-│                              │  │    for user preferences..."    │  │
-│                              │  │                                │  │
-│                              │  │ • fintech_patterns/            │  │
-│                              │  │   compliance.md                │  │
+│                              │  │ 📁 SOURCES                     │  │
+│                              │  │ • cdp_memory/SKILL.md          │  │
+│                              │  │ • cdp_context_editing/SKILL.md │  │
+│                              │  │ • fintech-patterns/SKILL.md    │  │
 │                              │  └────────────────────────────────┘  │
 │                              │                                      │
+│                              │  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 92% confidence │
 └──────────────────────────────┴──────────────────────────────────────┘
 ```
 
 ### Narration (20s) — EMPHASIZE SOURCES
 
-> *(Point at the response)*
+> *(Point at the suggested response)*
 >
-> "Here's the answer. Context Editing for within-session. Memory for cross-session. Fintech-specific: compliance-critical info should persist.
+> "Now look at the answer. Three specific steps — not generic advice.
 >
-> But scroll down. Look at **Sources**."
+> 'Store compliance-critical facts in Memory at natural breaks.' 'Use summarize() when approaching 80-90% token capacity.' 'Write Memory entries with customer profile, regulatory flags, next session priorities.'
 >
-> *(Point at each source)*
+> This is fintech-specific guidance. And scroll down — **Sources**.
 >
-> "Every claim traces to a specific file. Not just 'memory_playbook' — but the actual excerpt: 'Cross-session persistence for user preferences.'
+> Three skill files. Every claim traces back to reviewed documentation.
 >
-> This is what I mean by a **single point of truth** — not one person's memory, not one team's docs. One reviewed knowledge surface the agent can cite.
->
-> Three teams' knowledge. One conversation. **Verifiable.**"
+> That's the difference between 'sounds right' and **auditable**."
 
 ---
 
-### Screen 10 (2:52-3:27): Post-call
+### Screen 10 (2:42-3:10): Post-call Summary
+
+**실제 UI 요소 (Images 3-4):**
+- Interview Archived 배너 (초록색)
+- Call Summary 카드
+- Topics Covered / Customer Pain Points (2컬럼)
+- Key Requirements
+- Skill Update Proposals (2개 — ADD_PATTERN)
+- Recommended Follow-ups
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  Post-call: Skill Update Proposal                                  │
+│  S Sigrid | Post-call: FinBot (Series B fintech, 50K+ users)...   │
 ├────────────────────────────────────────────────────────────────────┤
 │                                                                    │
 │  ┌────────────────────────────────────────────────────────────┐    │
-│  │  📁 Interview Archived                                     │    │
-│  │  interview_records/learnings/2025-12-14_finbot.md          │    │
-│  │                                          [View in Skills]  │    │
+│  │  📁 Interview Archived                     [View in Skills →]│   │
+│  │  interview_records/learnings/2025-12-15_finbot_(series_b_...│   │
 │  └────────────────────────────────────────────────────────────┘    │
 │                                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  Call Summary                                               │   │
+│  │  FinBot, a Series B fintech with 50K+ users, is struggling  │   │
+│  │  with token cost explosion and context loss in their 20-50  │   │
+│  │  turn Claude-powered financial advisor chatbot. Sarah Chen  │   │
+│  │  (ex-Stripe, Head of Engineering) presented the challenge   │   │
+│  │  of users returning multi-day later expecting Claude to     │   │
+│  │  remember previous conversations...                         │   │
+│  │                                                             │   │
+│  │  Outcome: Solution positioned - follow-up expected to       │   │
+│  │  discuss implementation details, pricing, and ROI...        │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                    │
+│  ┌─────────────────────────┐  ┌────────────────────────────────┐   │
+│  │  Topics Covered         │  │  Customer Pain Points          │   │
+│  │  • Cross-session        │  │  ⚠ Token cost explosion from   │   │
+│  │    conversation persist │  │    20-50 turn conversations    │   │
+│  │  • Multi-day memory     │  │  ⚠ Context loss requiring      │   │
+│  │  • Token cost optim     │  │    users to repeat info        │   │
+│  │  • Long conversation    │  │  ⚠ Users returning next day    │   │
+│  │    context management   │  │    expecting context retained  │   │
+│  │  • Financial advisor    │  │  ⚠ Managing conversation       │   │
+│  │    chatbot use case     │  │    memory while maintaining    │   │
+│  │  • Compliance in finte  │  │    compliance in fintech       │   │
+│  └─────────────────────────┘  └────────────────────────────────┘   │
+│                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │  fintech_patterns · add_pattern                              │  │
-│  │                                                              │  │
-│  │  ### Memory + Compliance Pattern                             │  │
-│  │  For fintech: compliance-critical data should persist        │  │
-│  │  in Memory, not just summarized in Context Editing.          │  │
-│  │                                                              │  │
+│  │  fintech_patterns · ADD_PATTERN                              │  │
+│  │  fintech_compliance_memory.md                                │  │
+│  │  ┌────────────────────────────────────────────────────────┐  │  │
+│  │  │ Compliance-aware Memory in Fintech: When implementing  │  │  │
+│  │  │ Memory in financial services, ensure stored context    │  │  │
+│  │  │ includes audit trail metadata (timestamp, conversation │  │  │
+│  │  │ ID, user action confirmation). Memory should exclude   │  │  │
+│  │  │ sensitive PII fields but retain transaction context... │  │  │
+│  │  └────────────────────────────────────────────────────────┘  │  │
+│  │  Sarah Chen's mention of 'compliance constraints' indicates  │  │
+│  │  that fintech customers need guidance on implementing Memory │  │
+│  │  in compliance-aware ways...                                 │  │
 │  │                                   [Approve]  [Dismiss]       │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 │                                                                    │
-│  ─────────────────────────────────────────────────────────────     │
-│                                                                    │
-│  Approve → App saves to learnings/ → In production: PR workflow   │
-│                                                                    │
-│  Platform: container.skills + code_execution                       │
-│  My app: Orchestration, state, UI, Git integration                 │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  Recommended Follow-ups                                      │  │
+│  │  □ Send FinBot a ROI calculator showing token savings with   │  │
+│  │    Memory + Context Editing vs. status quo (estimate 30-50%  │  │
+│  │    reduction on resumed conversations)                       │  │
+│  │  □ Prepare implementation architecture diagram showing       │  │
+│  │    Memory storage strategy with compliance audit trails...   │  │
+│  └──────────────────────────────────────────────────────────────┘  │
 │                                                                    │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### Narration (35s)
+### Narration (28s)
 
-> *(Transition to post-call view)*
+> *(Transition to post-call summary)*
 >
-> "Call's done. Now watch what happens.
+> "Call's done. I click 'End Call' and land here — the Post-call Summary.
 >
-> First — see 'Interview Archived'? The full transcript is saved to `interview_records`. Every call becomes searchable knowledge for future conversations.
+> First — see 'Interview Archived'? The full transcript is saved automatically. Every call becomes searchable knowledge.
 >
-> Second — this is where it gets interesting. PostCall Agent analyzed the conversation and **proposed a skill update**.
+> Below that — Call Summary. Topics covered. Customer pain points — four of them extracted automatically. All by the Postmortem Agent.
 >
-> Look: 'Memory + Compliance Pattern. For fintech, compliance-critical data should persist in Memory.' It detected a pattern from this specific call and is suggesting we codify it."
+> But here's the interesting part. Scroll down — **Skill Update Proposal**.
 >
-> *(Point at Approve button)*
+> 'fintech_patterns · ADD_PATTERN.' The agent detected a new pattern from this call: 'Compliance-aware Memory in Fintech.' It even wrote the content — audit trail metadata, conversation ID, PII handling.
 >
-> "When I click Approve, this learning saves to `learnings/` folder. In production, you'd wire this to a GitHub PR — team review before it goes live.
->
-> This is how **silos stay broken**: every call turns into a reviewed artifact that the next call can reuse. **Calls generate knowledge. Knowledge improves future calls.**
->
-> And to be crystal clear: **Platform provides the primitives** — `container.skills`, `code_execution`. **My app provides everything else** — the orchestration, the state, this UI, the Git integration."
+> When I click Approve, this becomes part of our team's knowledge. Next fintech call? This pattern is already available."
 
 ---
 
-## [3:27-4:27] How to Build
+### Screen 11 (3:10-3:40): Knowledge Base — Flywheel Complete
 
-### Screen 11 (3:27-3:42): Step 1 — Package Your Skills
+**실제 UI 요소 (Image 1):**
+- Knowledge Base 타이틀 + 서브타이틀
+- 🔀 Version Control 카드 (main 브랜치)
+- ⚠ Uncommitted changes 경고
+- Skills 목록 (접기/펼치기 가능)
+- 📁 COMPANY KNOWLEDGE vs ✏️ INTERVIEW LEARNINGS 구분
+- 날짜별 FinBot learnings + [Add Pattern] 버튼
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Knowledge Base  Company knowledge and learnings from previous     │
+│                  interviews                                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  🔀 Version Control                              ⌥ main       │  │
+│  │  Last commit: edcf56b: still display names updated           │  │
+│  │  Remote: https://github.com/sigridjineth/anthropic-assignment│  │
+│  │                                                               │  │
+│  │  ⚠ Uncommitted changes in skills/                            │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  context_editing_guide                          📄 3  ✏️ 3  ∧ │  │
+│  │  Managing context window, token optimization, summarization   │  │
+│  │  strategies for long conversations.                           │  │
+│  │                                                               │  │
+│  │  📁 COMPANY KNOWLEDGE                                         │  │
+│  │  📄 SKILL.md                                                  │  │
+│  │  📄 references/persistent_facts.md                            │  │
+│  │  📄 references/strategies.md                                  │  │
+│  │                                                               │  │
+│  │  ✏️ INTERVIEW LEARNINGS                                       │  │
+│  │  💡 FinBot is a Series B fintech startup with 50K+ use       │  │
+│  │                              [Add Pattern]    Dec 14, 2025   │  │
+│  │  💡 FinBot is a Series B fintech startup with 50K+ use       │  │
+│  │                              [Add Example]    Dec 14, 2025   │  │
+│  │  💡 FinBot (Series B fintech, 50K+ users) has been usi       │  │
+│  │                              [Add Pattern]    Dec 14, 2025   │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  fintech-patterns                                📄 3  ✏️ 1  ∨ │  │
+│  │  Common fintech customer patterns, objections, and success   │  │
+│  │  stories. Compliance handling, long conversation management. │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Narration (30s)
+
+> *(Navigate to Skills page)*
+>
+> "Now let me show you where all this lives. This is the Knowledge Base.
+>
+> See Version Control at the top? Skills are in Git. Last commit, remote URL, uncommitted changes — just like code.
+>
+> Look at `context_editing_guide`. Two sections: **Company Knowledge** — the original skill files your team wrote. **Interview Learnings** — patterns extracted from actual calls.
+>
+> Those FinBot learnings I just approved? They show up here. Tagged with dates — December 14th. Ready to be promoted to Company Knowledge through a PR.
+>
+> This is what I mean by **single point of truth**. Not scattered in Slack. Not in someone's head. One reviewed, versioned, auditable surface.
+>
+> This is the flywheel: **Calls generate knowledge. Knowledge improves future calls.**
+>
+> And to be crystal clear: **Platform provides the primitives** — `container.skills`, `code_execution`. **My app provides everything else** — this UI, the Git integration, the learning extraction."
+
+---
+
+## [3:40-4:40] How to Build
+
+### Screen 12 (3:40-3:55): Step 1 — Package Your Skills
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -631,7 +772,7 @@
 
 ---
 
-### Screen 12 (3:42-3:57): Step 2 — Build Your Router
+### Screen 13 (3:55-4:10): Step 2 — Build Your Router
 
 ```python
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -683,7 +824,7 @@
 
 ---
 
-### Screen 13 (3:57-4:12): Step 3 — Attach Skills via API
+### Screen 14 (4:10-4:25): Step 3 — Attach Skills via API
 
 ```python
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -729,7 +870,7 @@
 
 ---
 
-### Screen 14 (4:12-4:27): Architecture
+### Screen 15 (4:25-4:40): Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -785,9 +926,9 @@
 
 ---
 
-## [4:27-5:12] Wrap Up
+## [4:40-5:25] Wrap Up
 
-### Screen 15: Wrap Up
+### Screen 16: Wrap Up
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -846,6 +987,21 @@
 > *(Smile, final beat)*
 >
 > "Go build something. Thanks for watching."
+
+---
+
+## Changes Summary: v9.7 → v9.8
+
+| Section | v9.7 | v9.8 |
+|---------|------|------|
+| **Demo Section** | 4 screens (7-10) | **5 screens (7-11) — Knowledge Base 추가** |
+| **Screen 7** | Session Ready (기존) | **Landing — Session Ready (유지)** |
+| **Screen 8** | Dynamic Skill (간략) | **Router Decision Box (실제 UI 반영)** |
+| **Screen 9** | Response + Sources | **Suggested Response + Sources (실제 UI 반영)** |
+| **Screen 10** | Post-call (간략) | **Post-call Summary 상세 (실제 UI 반영)** |
+| **Screen 11** | N/A | **NEW: Knowledge Base — Flywheel Complete** |
+| **Customer name** | Sarah / FinBot 혼용 | **FinBot (Series B fintech, 50K+ users) 통일** |
+| **Total runtime** | 5:12 | **5:25** |
 
 ---
 
@@ -1199,7 +1355,7 @@ response = client.beta.messages.create(
 
 ---
 
-## Runtime Breakdown (PDF 순서)
+## Runtime Breakdown (실제 UI 기반 v9.8)
 
 | Section | Duration | Cumulative |
 |---------|----------|------------|
@@ -1210,16 +1366,17 @@ response = client.beta.messages.create(
 | How it Works | 0:15 | 1:15 |
 | Before/After | 0:13 | 1:28 |
 | **Why Skills, Not RAG?** | **0:15** | **1:43** |
-| **Live Demo** | **0:02** | **1:45** |
-| Landing | 0:17 | 2:02 |
-| Dynamic Skill | 0:30 | 2:32 |
-| Response + Sources | 0:20 | 2:52 |
-| Post-call | 0:35 | 3:27 |
-| Step 1: Package | 0:15 | 3:42 |
-| Step 2: Router | 0:15 | 3:57 |
-| Step 3: API | 0:15 | 4:12 |
-| **Architecture** | **0:15** | **4:27** |
-| Wrap Up | 0:45 | 5:12 |
+| **Live Demo Transition** | **0:02** | **1:45** |
+| **Landing (Session Ready)** | **0:17** | **2:02** |
+| **Router Decision** | **0:20** | **2:22** |
+| **Suggested Response + Sources** | **0:20** | **2:42** |
+| **Post-call Summary** | **0:28** | **3:10** |
+| **Knowledge Base (NEW)** | **0:30** | **3:40** |
+| Step 1: Package | 0:15 | 3:55 |
+| Step 2: Router | 0:15 | 4:10 |
+| Step 3: API | 0:15 | 4:25 |
+| **Architecture** | **0:15** | **4:40** |
+| Wrap Up | 0:45 | **5:25** |
 
 ---
 
@@ -1240,24 +1397,26 @@ response = client.beta.messages.create(
 - [ ] "Three phases, four agents: Pre-call → Live call → Post-call" (Screen 14)
 - [ ] "Router uses Haiku for speed. Answerer uses Sonnet for quality." (Screen 14)
 
-### Visual Checkpoints (PDF 순서)
+### Visual Checkpoints (실제 UI 기반 v9.8)
 | Time | What | Why |
 |------|------|-----|
 | 0:05 | Problem hook | Emotional connection |
 | 0:20 | Platform vs Custom skills table | Framing |
 | 1:05 | How it Works diagram | Orchestration flow |
 | 1:20 | Before/After comparison | Quick proof |
-| **1:35** | **RAG vs Skills comparison** | **Technical differentiation (after Before/After)** |
+| **1:35** | **RAG vs Skills comparison** | **Technical differentiation** |
 | **1:43** | **Live Demo transition** | **Energy shift** |
-| 2:15 | Router Decision panel | Key moment |
-| 2:45 | Sources with file paths + excerpts | Proof of grounding |
-| 3:00 | Interview Archived banner | META-SKILL feature |
-| 3:35 | SKILL.md code | Technical credibility |
-| 4:00 | container.skills API code | CDP integration |
-| **4:17** | **Agents Architecture diagram** | **3-phase flow visualization** |
-| 4:45 | "use Skills you trust" | Trust/review mention |
+| **2:02** | **Landing — Session Ready modal** | **Prep Agent baseline skills** |
+| **2:15** | **Router Decision Box (주황색)** | **KEY MOMENT — skill attachment** |
+| **2:35** | **Suggested Response + Sources** | **Auditable answers** |
+| **2:55** | **Post-call Summary (상세)** | **Call Summary + Pain Points** |
+| **3:20** | **Knowledge Base 페이지** | **Flywheel — learnings 축적** |
+| **3:50** | **SKILL.md code** | **Technical credibility** |
+| **4:15** | **container.skills API code** | **CDP integration** |
+| **4:30** | **Agents Architecture diagram** | **3-phase flow visualization** |
+| **5:00** | **"use Skills you trust"** | **Trust/review mention** |
 
 ---
 
-*Script v9.7 — PDF 순서 정렬 + RAG vs Skills 나레이션 강화 (Naive RAG, Accumulative, Evolvable)*
-*Last updated: 2025-12-14*
+*Script v9.8 — 실제 UI 스크린샷 기반 Demo Section 전면 개편 + Knowledge Base 추가*
+*Last updated: 2025-12-15*

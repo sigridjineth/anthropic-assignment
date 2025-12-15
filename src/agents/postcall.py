@@ -196,6 +196,7 @@ class PostCallAgent:
                             rationale=p.get("rationale", ""),
                         )
                         for p in data.get("skill_update_proposals", [])
+                        if isinstance(p, dict)  # Skip if model returns strings instead of objects
                     ],
                     follow_up_actions=data.get("follow_up_actions", []),
                 )
