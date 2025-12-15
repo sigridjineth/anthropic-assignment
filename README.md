@@ -2,6 +2,7 @@
 
 * Vercel Demo: [Link](https://interview-copilot-with-skills.vercel.app/)
 * Slides: [Link](https://drive.google.com/file/d/1v_ab8uoFnjoEL2LnMrHcmPybgdfiFYGr/view?usp=sharing)
+* YouTube: [Link](https://youtu.be/fOXLW6t2faw)
 * Claude Skills for API Docs: [Link](https://platform.claude.com/docs/en/build-with-claude/skills-guide)
 
 A working demo that shows how to build multi-agent systems with Claude Skills.
@@ -173,7 +174,7 @@ Open http://localhost:8000
 
 The landing page shows your upcoming calls and lets you describe the customer:
 
-![Landing](assets/Screenshot%202025-12-15%20at%205.11.01%20PM.png)
+![Landing](assets/landing.png)
 
 During the call, you get a split view. Transcript on the left, copilot suggestions on the right:
 
@@ -218,10 +219,23 @@ make format   # Format code
 | `pricing_guidance` | Claude API pricing, tier recommendations |
 | `fintech_patterns` | Industry-specific objections and patterns |
 
+## Deep Dive: Building with Skills
+
+Want to understand how this project works under the hood? Check out the detailed guide:
+
+**[docs/SKILLS_GUIDE.md](docs/SKILLS_GUIDE.md)** covers:
+- SKILL.md format and structure
+- Uploading skills via the API
+- Building a router with structured output
+- Fallback patterns when the API isn't available
+- Post-call learning loop
+- Real code examples from this project
+
 ## Links
 
-- [Claude Skills Guide](https://docs.anthropic.com/en/docs/build-with-claude/claude-for-sheets)
-- [Structured Outputs](https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use)
+- [Official Skills Guide](https://platform.claude.com/docs/en/build-with-claude/skills-guide)
+- [Skills API Reference](https://platform.claude.com/docs/en/api/skills/create-skill)
+- [Tool Use (Structured Output)](https://docs.anthropic.com/en/docs/build-with-claude/tool-use)
 - [Code Execution](https://docs.anthropic.com/en/docs/build-with-claude/code-execution)
 
 ## Questions?
